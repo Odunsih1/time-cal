@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth, adminAuth } from "@/lib/firebaseAdmin";
+import { adminAuth } from "@/lib/firebaseAdmin";
 import { connectMongoDB } from "@/lib/mongoose";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";

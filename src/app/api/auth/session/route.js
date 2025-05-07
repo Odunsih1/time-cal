@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { adminAuth } from "@/lib/firebaseAdmin";
-import connectMongoDB from "@/lib/mongoose";
+import { connectMongoDB } from "@/lib/mongoose";
 import User from "@/models/User";
 
 export async function GET(request) {
