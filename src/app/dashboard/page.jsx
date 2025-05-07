@@ -5,7 +5,7 @@ import Header from "@/components/layout/Header";
 import { auth } from "@/lib/firebaseConfig";
 import axios from "axios";
 import { Calendar, User, Copy } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { Toggle } from "@/components/ui/toggle";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

@@ -5,7 +5,7 @@ import { auth } from "@/lib/firebaseConfig";
 import { signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { Toaster, toast } from "react-hot-toast";
 
 const Header = () => {
