@@ -4,9 +4,10 @@ import { Calendar, Eye, EyeOff } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { auth } from "@/lib/firebaseConfig";
 import {
-  signInWithPopup,
-  GoogleAuthProvider,
+  createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from "firebase/auth";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
@@ -76,6 +77,26 @@ const Page = () => {
     }
   };
 
+  const setSessionCookie = async (idToken) => {
+    try {
+      console.log(
+        "Setting session cookie with ID token:",
+        idToken.slice(0, 10) + "..."
+      );
+      await axios.post(
+        "/api/auth/set-session",
+        { idToken },
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+      console.log("Session cookie set successfully");
+    } catch (error) {
+      console.error("Set session cookie error:", error.message, error);
+      throw new Error("Failed to set session cookie");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (loading) return;
@@ -94,29 +115,37 @@ const Page = () => {
           email: formData.email,
           profilePicUrl,
         });
-        const response = await axios.post("/api/auth/signup", {
-          fullName: formData.fullName,
-          email: formData.email,
-          password: formData.password,
-          profilePicUrl,
-        });
-        toast.success("Sign-up successful!");
-        console.log("Backend signup successful:", response.data);
-        router.push("/profile"); // Redirect to profile page
-      } else {
-        console.log("Sending sign-in request:", { email: formData.email });
-        const response = await axios.post("/api/auth/signin", {
-          email: formData.email,
-          password: formData.password,
-        });
-        await signInWithEmailAndPassword(
+        const userCredential = await createUserWithEmailAndPassword(
           auth,
           formData.email,
           formData.password
         );
+        const idToken = await userCredential.user.getIdToken();
+        const response = await axios.post("/api/auth/signup", {
+          fullName: formData.fullName,
+          email: formData.email,
+          password: formData.password, // Send password
+          profilePicUrl,
+        });
+        await setSessionCookie(idToken);
+        toast.success("Sign-up successful!");
+        console.log("Backend signup successful:", response.data);
+        router.push("/dashboard");
+      } else {
+        console.log("Sending sign-in request:", { email: formData.email });
+        const userCredential = await signInWithEmailAndPassword(
+          auth,
+          formData.email,
+          formData.password
+        );
+        const idToken = await userCredential.user.getIdToken();
+        const response = await axios.post("/api/auth/signin", {
+          email: formData.email,
+          idToken,
+        });
         toast.success("Sign-in successful!");
         console.log("Sign-in successful:", response.data);
-        router.push("/profile"); // Redirect to profile page
+        router.push("/dashboard");
       }
     } catch (error) {
       console.error(
@@ -147,13 +176,14 @@ const Page = () => {
       console.log("Sending Google sign-in request:", {
         email: result.user.email,
       });
+      await setSessionCookie(idToken);
       const response = await axios.post("/api/auth/google", {
         idToken,
         fullName: result.user.displayName,
       });
       toast.success("Google sign-in successful!");
       console.log("Google sign-in successful:", response.data);
-      router.push("/profile"); // Redirect to profile page
+      router.push("/dashboard"); // Changed to /dashboard
     } catch (error) {
       console.error("Google sign-in error:", error.message, error);
       toast.error("Google sign-in failed: " + error.message);

@@ -1,9 +1,9 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
 import Header from "@/components/layout/Header";
 import { auth } from "@/lib/firebaseConfig";
 import axios from "axios";
-import toast, { Toaster } from "react-hot-toast";
 import { Calendar, User, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/ui/toggle";
@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Calendar as ShadcnCalendar } from "@/components/ui/calendar";
 import { format, addDays } from "date-fns";
+import toast, { Toaster } from "react-hot-toast";
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
@@ -25,52 +26,98 @@ const Dashboard = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [customTimes, setCustomTimes] = useState({});
   const [bookingLink, setBookingLink] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [isGoogleConnected, setIsGoogleConnected] = useState(false);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchData = async (currentUser) => {
       try {
-        const idToken = await auth.currentUser?.getIdToken();
-        if (!idToken) throw new Error("No user logged in");
+        setLoading(true);
+        const idToken = await currentUser.getIdToken();
+        console.log("Firebase ID token:", idToken);
 
-        // Fetch user profile
         const profileResponse = await axios.get("/api/profile", {
           headers: { Authorization: `Bearer ${idToken}` },
         });
         const userData = profileResponse.data.user;
         setUser(userData);
         setNotifications(userData.notifications || notifications);
-        setBookingLink(`time-cal.com/book/${userData._id}`);
-        // Initialize custom times from user availability
+        setBookingLink(
+          userData.bookingLink || `http://localhost:3000/book/${userData._id}`
+        );
         setCustomTimes(
-          userData.availability?.reduce((acc, slot) => {
+          userData.customAvailability?.reduce((acc, slot) => {
             acc[slot.date] = { start: slot.startTime, end: slot.endTime };
             return acc;
           }, {}) || {}
         );
+        setIsGoogleConnected(!!userData.googleTokens);
 
-        // Fetch bookings
-        const bookingsResponse = await axios.get("/api/bookings", {
-          headers: { Authorization: `Bearer ${idToken}` },
-        });
+        const bookingsResponse = await axios
+          .get("/api/bookings", {
+            headers: { Authorization: `Bearer ${idToken}` },
+          })
+          .catch((error) => {
+            console.error(
+              "Bookings fetch error:",
+              error.response?.status,
+              error.response?.data
+            );
+            throw error;
+          });
         setBookings(bookingsResponse.data.bookings);
       } catch (error) {
         console.error("Fetch data error:", error);
-        toast.error("Failed to load dashboard data");
+        toast.error(error.response?.data?.details || "Failed to load bookings");
+      } finally {
+        setLoading(false);
       }
     };
 
-    if (auth.currentUser) {
-      fetchData();
-    } else {
-      auth.onAuthStateChanged((user) => {
-        if (user) fetchData();
-      });
-    }
+    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+      if (currentUser) {
+        fetchData(currentUser);
+      } else {
+        console.log("No user signed in, redirecting to login");
+        window.location.href = "/auth";
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  const handleGoogleCalendarConnect = () => {
-    toast.success("Google Calendar connection placeholder");
+  const handleGoogleCalendarConnect = async () => {
+    try {
+      if (!auth.currentUser) {
+        toast.error("Please sign in to connect Google Calendar");
+        window.location.href = "/auth";
+        return;
+      }
+      console.log("Redirecting to Google Calendar OAuth");
+      window.location.href = "/api/auth/google?action=login";
+    } catch (error) {
+      console.error("Google connect error:", error);
+      toast.error("Failed to initiate Google Calendar connection");
+    }
+  };
+
+  const handleGoogleCalendarSync = async () => {
+    try {
+      const idToken = await auth.currentUser.getIdToken();
+      await axios.post(
+        "/api/calendar/sync",
+        {},
+        { headers: { Authorization: `Bearer ${idToken}` } }
+      );
+      toast.success("Google Calendar synced successfully!");
+      const bookingsResponse = await axios.get("/api/bookings", {
+        headers: { Authorization: `Bearer ${idToken}` },
+      });
+      setBookings(bookingsResponse.data.bookings);
+    } catch (error) {
+      console.error("Sync error:", error);
+      toast.error("Failed to sync Google Calendar");
+    }
   };
 
   const handleNotificationToggle = async (key, value) => {
@@ -96,10 +143,11 @@ const Dashboard = () => {
 
   const handleTimeChange = (field, value) => {
     if (selectedDate) {
+      const dateKey = format(selectedDate, "yyyy-MM-dd");
       setCustomTimes((prev) => ({
         ...prev,
-        [format(selectedDate, "yyyy-MM-dd")]: {
-          ...prev[format(selectedDate, "yyyy-MM-dd")],
+        [dateKey]: {
+          ...prev[dateKey],
           [field]: value,
         },
       }));
@@ -107,28 +155,76 @@ const Dashboard = () => {
   };
 
   const saveCustomTimes = async () => {
-    if (!selectedDate) return;
+    if (!selectedDate) {
+      toast.error("Please select a date");
+      return;
+    }
+
+    const dateKey = format(selectedDate, "yyyy-MM-dd");
+    if (
+      !customTimes[dateKey] ||
+      !customTimes[dateKey].start ||
+      !customTimes[dateKey].end
+    ) {
+      toast.error("Please set start and end times");
+      return;
+    }
+
     setLoading(true);
     try {
       const idToken = await auth.currentUser.getIdToken();
-      const dateKey = format(selectedDate, "yyyy-MM-dd");
-      const availability = Object.entries(customTimes).map(([date, times]) => ({
-        date,
-        startTime: times.start || "09:00",
-        endTime: times.end || "17:00",
-      }));
-      console.log("Saving availability:", availability);
+      const newCustomAvailability = {
+        date: dateKey,
+        startTime: customTimes[dateKey].start,
+        endTime: customTimes[dateKey].end,
+      };
+      const customAvailability = [
+        ...(user.customAvailability || []).filter(
+          (slot) => slot.date !== dateKey
+        ),
+        newCustomAvailability,
+      ];
       await axios.post(
         "/api/profile/update",
-        { availability },
+        { customAvailability },
         { headers: { Authorization: `Bearer ${idToken}` } }
       );
-      toast.success("Availability updated!");
+      setUser((prev) => ({
+        ...prev,
+        customAvailability,
+      }));
+      toast.success("Custom availability updated!");
     } catch (error) {
-      console.error("Update availability error:", error);
-      toast.error("Failed to update availability");
+      console.error("Update custom availability error:", error);
+      toast.error("Failed to update custom availability");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUpdateBookingStatus = async (bookingId, newStatus) => {
+    try {
+      const idToken = await auth.currentUser.getIdToken();
+      const response = await axios.post(
+        "/api/bookings/update",
+        { bookingId, status: newStatus },
+        { headers: { Authorization: `Bearer ${idToken}` } }
+      );
+      setBookings((prev) =>
+        prev.map((booking) =>
+          booking._id === bookingId
+            ? { ...booking, status: newStatus }
+            : booking
+        )
+      );
+      toast.success(`Booking marked as ${newStatus}`);
+    } catch (error) {
+      console.error(
+        "Update booking status error:",
+        error.response?.data,
+        error
+      );
+      toast.error("Failed to update booking status");
     }
   };
 
@@ -144,19 +240,24 @@ const Dashboard = () => {
     (_, i) => `${i.toString().padStart(2, "0")}:00`
   );
 
-  // Calendar date range: today to 5 days ahead
   const today = new Date();
   const maxDate = addDays(today, 5);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <>
       <Header />
       <main className="bg-gray-100 min-h-screen pt-20">
-        <Toaster position="top-right" reverseOrder={false} />
+        <Toaster />
         <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-          {/* First Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* User Info */}
             <Card>
               <CardHeader>
                 <CardTitle>Profile</CardTitle>
@@ -176,27 +277,34 @@ const Dashboard = () => {
                 <Button
                   onClick={handleGoogleCalendarConnect}
                   className="mt-4 bg-blue-600 hover:bg-blue-500"
+                  disabled={isGoogleConnected}
                 >
-                  Connect Google Calendar
+                  {isGoogleConnected
+                    ? "Google Calendar Connected"
+                    : "Connect Google Calendar"}
                 </Button>
+                {isGoogleConnected && (
+                  <Button
+                    onClick={handleGoogleCalendarSync}
+                    className="mt-4 ml-2 bg-green-600 hover:bg-green-500"
+                  >
+                    Sync Google Calendar
+                  </Button>
+                )}
               </CardContent>
             </Card>
-
-            {/* Calendar */}
             <Card>
               <CardHeader>
                 <CardTitle>Your Calendar</CardTitle>
                 <p className="text-gray-600">
-                  Manage your availability and view upcoming bookings
+                  Set custom availability for the next 5 days
                 </p>
               </CardHeader>
               <CardContent>
                 <Tabs defaultValue="calendar" className="w-full">
                   <TabsList>
                     <TabsTrigger value="calendar">Calendar</TabsTrigger>
-                    <TabsTrigger value="bookings">
-                      Upcoming Bookings
-                    </TabsTrigger>
+                    <TabsTrigger value="bookings">Bookings</TabsTrigger>
                   </TabsList>
                   <TabsContent value="calendar">
                     <ShadcnCalendar
@@ -210,7 +318,8 @@ const Dashboard = () => {
                     {selectedDate && (
                       <div className="mt-4">
                         <h4 className="text-md font-semibold">
-                          Set Availability for {format(selectedDate, "PPP")}
+                          Set Custom Availability for{" "}
+                          {format(selectedDate, "PPP")}
                         </h4>
                         <div className="flex items-center space-x-4 mt-2">
                           <select
@@ -252,27 +361,67 @@ const Dashboard = () => {
                           className="mt-4 bg-blue-600 hover:bg-blue-500"
                           disabled={loading}
                         >
-                          {loading ? "Saving..." : "Save Availability"}
+                          {loading ? "Saving..." : "Save Custom Availability"}
                         </Button>
                       </div>
                     )}
                   </TabsContent>
                   <TabsContent value="bookings">
                     {bookings.length === 0 ? (
-                      <p>No upcoming bookings.</p>
+                      <p>No bookings found.</p>
                     ) : (
-                      <ul className="space-y-2">
-                        {bookings
-                          .filter((b) => b.status === "upcoming")
-                          .map((booking) => (
-                            <li
-                              key={booking._id}
-                              className="border p-2 rounded-md"
-                            >
-                              {format(new Date(booking.startTime), "PPPp")} -{" "}
-                              {format(new Date(booking.endTime), "p")}
-                            </li>
-                          ))}
+                      <ul className="space-y-4">
+                        {bookings.map((booking) => (
+                          <li
+                            key={booking._id}
+                            className="border p-4 rounded-md flex justify-between items-center"
+                          >
+                            <div>
+                              <p>
+                                <strong>Client:</strong> {booking.clientName}
+                              </p>
+                              <p>
+                                <strong>Date:</strong>{" "}
+                                {format(new Date(booking.date), "PPP")}
+                              </p>
+                              <p>
+                                <strong>Time:</strong> {booking.startTime} to{" "}
+                                {booking.endTime}
+                              </p>
+                              <p>
+                                <strong>Status:</strong>{" "}
+                                {booking.status.charAt(0).toUpperCase() +
+                                  booking.status.slice(1)}
+                              </p>
+                            </div>
+                            {booking.status === "upcoming" && (
+                              <div className="space-x-2">
+                                <Button
+                                  onClick={() =>
+                                    handleUpdateBookingStatus(
+                                      booking._id,
+                                      "completed"
+                                    )
+                                  }
+                                  className="bg-green-600 hover:bg-green-500"
+                                >
+                                  Mark Completed
+                                </Button>
+                                <Button
+                                  onClick={() =>
+                                    handleUpdateBookingStatus(
+                                      booking._id,
+                                      "cancelled"
+                                    )
+                                  }
+                                  className="bg-red-600 hover:bg-red-500"
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            )}
+                          </li>
+                        ))}
                       </ul>
                     )}
                   </TabsContent>
@@ -280,10 +429,7 @@ const Dashboard = () => {
               </CardContent>
             </Card>
           </div>
-
-          {/* Second Row */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-            {/* Notifications */}
             <Card>
               <CardHeader>
                 <CardTitle>Notifications</CardTitle>
@@ -311,8 +457,6 @@ const Dashboard = () => {
                 </div>
               </CardContent>
             </Card>
-
-            {/* Booking Link */}
             <Card>
               <CardHeader>
                 <CardTitle>Your Booking Link</CardTitle>
@@ -326,8 +470,6 @@ const Dashboard = () => {
                 </div>
               </CardContent>
             </Card>
-
-            {/* Quick Stats */}
             <Card>
               <CardHeader>
                 <CardTitle>Quick Stats</CardTitle>

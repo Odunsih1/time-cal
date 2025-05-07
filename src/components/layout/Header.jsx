@@ -82,7 +82,7 @@ const Header = () => {
               </Button>
             ) : (
               <Button
-                onClick={() => router.push("/")}
+                onClick={() => router.push("/Auth")}
                 className="bg-blue-600 hover:bg-blue-500 text-white"
               >
                 Get Started

@@ -156,6 +156,14 @@ const ProfilePage = () => {
     if (loading) return;
     setLoading(true);
     try {
+      // Validate availability
+      for (const slot of formData.availability) {
+        if (!slot.day || !slot.startTime || !slot.endTime) {
+          throw new Error(
+            "Each availability slot must have day, startTime, and endTime"
+          );
+        }
+      }
       const idToken = await auth.currentUser.getIdToken();
       const payload = { availability: formData.availability };
       console.log("Sending availability update:", payload);
@@ -163,16 +171,14 @@ const ProfilePage = () => {
         headers: { Authorization: `Bearer ${idToken}` },
       });
       console.log("Availability update response:", response.data);
-      setUser(response.data.user);
+      setUser((prev) => ({
+        ...prev,
+        availability: response.data.user?.availability || prev.availability,
+      }));
       toast.success("Availability updated successfully!");
     } catch (error) {
-      console.error(
-        "Update availability error:",
-        error.response?.data || error
-      );
-      toast.error(
-        error.response?.data?.error || "Failed to update availability"
-      );
+      console.error("Update availability error:", error.message, error.stack);
+      toast.error(error.message || "Failed to update availability");
     } finally {
       setLoading(false);
     }
