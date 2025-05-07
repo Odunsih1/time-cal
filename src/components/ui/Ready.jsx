@@ -1,5 +1,5 @@
 import React from "react";
-import Button from "./Buttons";
+import Buttons from "./Buttons";
 
 const Ready = () => {
   return (
@@ -11,7 +11,7 @@ const Ready = () => {
         <p className="text-xl text-gray-600">
           Join thousands of freelancers who have taken control of their calender
         </p>
-        <Button
+        <Buttons
           className={
             "bg-blue-600 text-white p-3.5 rounded-lg cursor-pointer text-xl transition hover:bg-blue-500"
           }

@@ -1,6 +1,6 @@
 "use client";
 import Header from "@/components/layout/Header";
-import Button from "@/components/ui/Buttons";
+import Buttons from "@/components/ui/Buttons";
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
 import { auth } from "@/lib/firebaseConfig";
@@ -402,7 +402,7 @@ const ProfilePage = () => {
                           onChange={handleInputChange}
                         />
                       </div>
-                      <Button
+                      <Buttons
                         name={loading ? "Saving..." : "Save Changes"}
                         className="bg-blue-600 text-white p-2 rounded-md cursor-pointer transition hover:bg-blue-500 mt-4"
                         disabled={loading}
@@ -494,7 +494,7 @@ const ProfilePage = () => {
                         + Add Availability
                       </button>
                     </div>
-                    <Button
+                    <Buttons
                       name={loading ? "Saving..." : "Save Availability"}
                       className="bg-blue-600 text-white p-2 rounded-md cursor-pointer transition hover:bg-blue-500 mt-4"
                       disabled={loading}
@@ -577,7 +577,7 @@ const ProfilePage = () => {
                         />
                       </div>
                     </div>
-                    <Button
+                    <Buttons
                       name={
                         loading ? "Saving..." : "Save Notification Settings"
                       }

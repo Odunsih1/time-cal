@@ -1,6 +1,6 @@
 import Image from "next/image";
 import React from "react";
-import Button from "./Buttons";
+import Buttons from "./Buttons";
 
 const Hero = () => {
   return (
@@ -16,13 +16,13 @@ const Hero = () => {
             confusion.
           </p>
           <div className="flex gap-5">
-            <Button
+            <Buttons
               className={
                 "bg-blue-600 text-white p-3.5 rounded-lg cursor-pointer text-xl transition hover:bg-blue-500"
               }
               name={"Get Started"}
             />
-            <Button
+            <Buttons
               className={
                 "border-2 bg-white border-gray-200 p-3.5 rounded-lg cursor-pointer transition hover:bg-gray-100 text-xl"
               }

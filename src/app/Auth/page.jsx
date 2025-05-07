@@ -1,5 +1,5 @@
 "use client";
-import Button from "@/components/ui/Buttons";
+import Buttons from "@/components/ui/Buttons";
 import { Calendar, Eye, EyeOff } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { auth } from "@/lib/firebaseConfig";
@@ -350,7 +350,7 @@ const Page = () => {
           </>
         )}
 
-        <Button
+        <Buttons
           className="bg-blue-600 mt-3 p-2 text-white w-full rounded-md cursor-pointer transition hover:bg-blue-500 text-base sm:text-lg"
           name={loading ? "Loading..." : isSignUp ? "Sign up" : "Sign in"}
           disabled={loading}
