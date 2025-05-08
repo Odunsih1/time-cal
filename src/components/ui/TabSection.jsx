@@ -275,7 +275,7 @@ const TabSection = () => {
               <div className="flex justify-between flex-col lg:flex-row">
                 <div>
                   <img
-                    src={formData.profilePicUrl || "/images/agb.jpeg"}
+                    src={formData.profilePicUrl || "/images/user.png"}
                     width={100}
                     height={100}
                     alt="Profile picture"

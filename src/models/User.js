@@ -55,6 +55,9 @@ const userSchema = new mongoose.Schema(
     googleTokens: { type: Object, default: null },
     bookingLink: { type: String, default: "" },
     lastGoogleSync: { type: String },
+    resetPasswordToken: { type: String, default: "" },
+    resetPasswordExpiry: { type: Number, default: null },
+    isEmailVerified: { type: Boolean, default: false },
   },
 
   { timestamps: true }

@@ -1,4 +1,5 @@
-Time-Cal
+###### Time-Cal
+
 Time-Cal is a scheduling and booking application that allows users to manage appointments, sync with Google Calendar, upload profile images via Cloudinary, and send email notifications using Nodemailer. Built with Next.js, Firebase Authentication, MongoDB, and Google Calendar API, Time-Cal provides a seamless experience for professionals to organize their schedules and for clients to book appointments effortlessly.
 Features
 User Authentication:
@@ -6,18 +7,22 @@ Sign up/sign in with email/password or Google Sign-In via Firebase.
 
 Secure session management with Firebase session cookies.
 
-Google Calendar Integration:
+## Google Calendar Integration:
+
 Connect and disconnect Google Calendar to sync bookings.
 
 Automatically sync new and updated bookings to Google Calendar.
 
-Image Upload:
+## Image Upload:
+
 Upload and manage profile pictures using Cloudinary.
 
-Email Notifications:
+## Email Notifications:
+
 Send email notifications for bookings, cancellations, and reminders using Nodemailer.
 
-Dashboard:
+## Dashboard:
+
 View and manage upcoming and completed bookings.
 
 Set custom availability for the next 5 days.
@@ -26,36 +31,40 @@ Enable/disable email and browser notifications.
 
 Copy a public booking link to share with clients.
 
-Public Booking:
+## Public Booking:
+
 Clients can book appointments via a public link (/book/[userId]) without authentication.
 
-Responsive UI:
+## Responsive UI:
+
 Built with Tailwind CSS and shadcn/ui components.
 
 Smooth loading animations with a calendar-themed loader.
 
-Notifications:
+## Notifications:
+
 Toast notifications for actions (e.g., booking updates, Google Calendar sync) using react-hot-toast.
 
-Tech Stack
-Frontend: Next.js 14 (App Router), React, Tailwind CSS, shadcn/ui
+## Tech Stack
 
-Backend: Next.js API Routes, MongoDB (via Mongoose)
+1. Frontend: Next.js 14 (App Router), React, Tailwind CSS, shadcn/ui
 
-Authentication: Firebase Authentication (email/password, Google Sign-In)
+2. Backend: Next.js API Routes, MongoDB (via Mongoose)
 
-APIs: Google Calendar API (via googleapis)
+3. Authentication: Firebase Authentication (email/password, Google Sign-In)
 
-Image Storage: Cloudinary
+4. APIs: Google Calendar API (via googleapis)
 
-Email: Nodemailer
+5. Image Storage: Cloudinary
 
-Database: MongoDB
+6. Email: Nodemailer
 
-Deployment: Vercel
+7. Database: MongoDB
 
-Other Libraries:
-axios for HTTP requests
+8. Deployment: Vercel
+
+9. Other Libraries:
+   axios for HTTP requests
 
 react-hot-toast for notifications
 

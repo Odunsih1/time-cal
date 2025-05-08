@@ -30,6 +30,7 @@ export async function GET(request) {
         fullName: user.fullName,
         email: user.email,
         profilePicUrl: user.profilePicUrl,
+        isEmailVerified: user.isEmailVerified,
         title: user.title,
         location: user.location,
         hourlyRate: user.hourlyRate,

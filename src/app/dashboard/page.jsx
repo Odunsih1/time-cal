@@ -14,6 +14,8 @@ import { Calendar as ShadcnCalendar } from "@/components/ui/calendar";
 import { format, addDays } from "date-fns";
 import toast, { Toaster } from "react-hot-toast";
 import Loader from "@/components/ui/Loader";
+import { sendEmailVerification } from "firebase/auth";
+import { useRouter } from "next/navigation";
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
@@ -29,13 +31,13 @@ const Dashboard = () => {
   const [bookingLink, setBookingLink] = useState("");
   const [loading, setLoading] = useState(true);
   const [isGoogleConnected, setIsGoogleConnected] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchData = async (currentUser) => {
       try {
         setLoading(true);
         const idToken = await currentUser.getIdToken();
-        // console.log("Firebase ID token:", idToken);
 
         const profileResponse = await axios.get("/api/profile", {
           headers: { Authorization: `Bearer ${idToken}` },
@@ -48,7 +50,7 @@ const Dashboard = () => {
             `https://time-cal.vercel.app/book/${userData._id}`
         );
         setCustomTimes(
-          userData.customAvailability?.reduce((acc, slot) => {
+          userData.availability?.reduce((acc, slot) => {
             acc[slot.date] = { start: slot.startTime, end: slot.endTime };
             return acc;
           }, {}) || {}
@@ -71,13 +73,22 @@ const Dashboard = () => {
       if (currentUser) {
         fetchData(currentUser);
       } else {
-        // console.log("No user signed in, redirecting to root");
-        window.location.href = "/"; // Fixed from /auths
+        window.location.href = "/";
       }
     });
 
     return () => unsubscribe();
   }, []);
+
+  const handleResendVerification = async () => {
+    try {
+      await sendEmailVerification(auth.currentUser);
+      toast.success("Verification email resent! Please check your inbox.");
+    } catch (error) {
+      console.error("Resend verification error:", error);
+      toast.error("Failed to resend verification email: " + error.message);
+    }
+  };
 
   const handleGoogleCalendarConnect = async () => {
     try {
@@ -87,7 +98,6 @@ const Dashboard = () => {
         return;
       }
       const response = await axios.get("/api/auth/google?action=login");
-      // console.log("Google OAuth URL:", response.data.authUrl);
       window.location.href = response.data.authUrl;
     } catch (error) {
       console.error("Google connect error:", error);
@@ -205,19 +215,17 @@ const Dashboard = () => {
         endTime: customTimes[dateKey].end,
       };
       const customAvailability = [
-        ...(user.customAvailability || []).filter(
-          (slot) => slot.date !== dateKey
-        ),
+        ...(user.availability || []).filter((slot) => slot.date !== dateKey),
         newCustomAvailability,
       ];
       await axios.post(
         "/api/profile/update",
-        { customAvailability },
+        { availability: customAvailability },
         { headers: { Authorization: `Bearer ${idToken}` } }
       );
       setUser((prev) => ({
         ...prev,
-        customAvailability,
+        availability: customAvailability,
       }));
       toast.success("Custom availability updated!");
     } catch (error) {
@@ -274,16 +282,30 @@ const Dashboard = () => {
       <Header />
       <main className="bg-gray-100 min-h-screen p-2 pt-20">
         <Toaster />
+        {user && !user.isEmailVerified && (
+          <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded-md mx-auto max-w-7xl mb-6 flex justify-between items-center">
+            <p>
+              Your email is not verified. Please check your inbox for a
+              verification link.
+            </p>
+            <Button
+              onClick={handleResendVerification}
+              className="bg-blue-600 hover:bg-blue-500 text-white cursor-pointer"
+            >
+              Resend Verification Email
+            </Button>
+          </div>
+        )}
         <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className={"h-80"}>
+            <Card className="h-80">
               <CardHeader>
                 <CardTitle>Profile</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center space-x-4">
                   <img
-                    src={user?.profilePicUrl || "/images/agb.jpeg"}
+                    src={user?.profilePicUrl || "/images/user.png"}
                     alt="Profile"
                     className="w-16 h-16 rounded-full"
                   />
@@ -295,7 +317,7 @@ const Dashboard = () => {
                 <div className="mt-4 space-x-2">
                   <Button
                     onClick={handleGoogleCalendarConnect}
-                    className="bg-blue-600 hover:bg-blue-500 mt-1.5"
+                    className="bg-blue-600 hover:bg-blue-500 mt-1.5 cursor-pointer"
                     disabled={isGoogleConnected}
                   >
                     {isGoogleConnected
@@ -306,13 +328,13 @@ const Dashboard = () => {
                     <>
                       <Button
                         onClick={handleGoogleCalendarSync}
-                        className="bg-green-600 hover:bg-green-500 mt-1.5"
+                        className="bg-green-600 hover:bg-green-500 mt-1.5 cursor-pointer"
                       >
                         Sync Google Calendar
                       </Button>
                       <Button
                         onClick={handleDisconnectGoogleCalendar}
-                        className="bg-red-600 hover:bg-red-500 mt-1.5"
+                        className="bg-red-600 hover:bg-red-500 mt-1.5 cursor-pointer"
                       >
                         Disconnect Google Calendar
                       </Button>
@@ -331,8 +353,12 @@ const Dashboard = () => {
               <CardContent>
                 <Tabs defaultValue="calendar" className="w-full">
                   <TabsList>
-                    <TabsTrigger value="calendar">Calendar</TabsTrigger>
-                    <TabsTrigger value="bookings">Bookings</TabsTrigger>
+                    <TabsTrigger className="cursor-pointer" value="calendar">
+                      Calendar
+                    </TabsTrigger>
+                    <TabsTrigger className="cursor-pointer" value="bookings">
+                      Bookings
+                    </TabsTrigger>
                   </TabsList>
                   <TabsContent value="calendar">
                     <ShadcnCalendar
@@ -386,7 +412,7 @@ const Dashboard = () => {
                         </div>
                         <Button
                           onClick={saveCustomTimes}
-                          className="mt-4 bg-blue-600 hover:bg-blue-500"
+                          className="mt-4 bg-blue-600 hover:bg-blue-500 cursor-pointer"
                           disabled={loading}
                         >
                           {loading ? "Saving..." : "Save Custom Availability"}
@@ -431,7 +457,7 @@ const Dashboard = () => {
                                       "completed"
                                     )
                                   }
-                                  className="bg-green-600 hover:bg-green-500"
+                                  className="bg-green-600 hover:bg-green-500 cursor-pointer"
                                 >
                                   Mark Completed
                                 </Button>
@@ -442,7 +468,7 @@ const Dashboard = () => {
                                       "cancelled"
                                     )
                                   }
-                                  className="bg-red-600 hover:bg-red-500"
+                                  className="bg-red-600 hover:bg-red-500 cursor-pointer"
                                 >
                                   Cancel
                                 </Button>
@@ -471,7 +497,7 @@ const Dashboard = () => {
                       onPressedChange={(value) =>
                         handleNotificationToggle("newBooking", value)
                       }
-                      className="data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
+                      className="data-[state=on]:bg-accent data-[state=on]:text-accent-foreground cursor-pointer"
                     >
                       <BellIcon className="h-4 w-4" />
                       <span className="sr-only">Toggle notifications</span>
@@ -484,7 +510,7 @@ const Dashboard = () => {
                       onPressedChange={(value) =>
                         handleNotificationToggle("browser", value)
                       }
-                      className="data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
+                      className="data-[state=on]:bg-accent data-[state=on]:text-accent-foreground cursor-pointer"
                     >
                       <BellIcon className="h-4 w-4" />
                       <span className="sr-only">Toggle notifications</span>
@@ -500,7 +526,7 @@ const Dashboard = () => {
               <CardContent>
                 <div className="flex items-center space-x-2">
                   <Input value={bookingLink} readOnly />
-                  <Button onClick={handleCopyLink}>
+                  <Button className="cursor-pointer" onClick={handleCopyLink}>
                     <Copy className="w-4 h-4 mr-2" /> Copy
                   </Button>
                 </div>
