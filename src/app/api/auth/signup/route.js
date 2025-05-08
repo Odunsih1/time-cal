@@ -62,7 +62,7 @@ export async function POST(request) {
           email,
           password: hashedPassword,
           profilePicUrl: profilePicUrl || firebaseUser.photoURL || "",
-          bookingLink: `http://localhost:3000/book/${firebaseUser.uid}`,
+          bookingLink: `https://time-cal.vercel.app/book/${firebaseUser.uid}`,
         });
         await user.save();
         console.log(
@@ -125,7 +125,7 @@ export async function POST(request) {
         email,
         password: hashedPassword,
         profilePicUrl: profilePicUrl || "",
-        bookingLink: `http://localhost:3000/book/${firebaseUser.uid}`, // Add booking link
+        bookingLink: `https://time-cal.vercel.app/${firebaseUser.uid}`, // Add booking link
       });
       await user.save();
       console.log("MongoDB user saved:", { _id: firebaseUser.uid, email });
