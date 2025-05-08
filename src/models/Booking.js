@@ -14,6 +14,8 @@ const bookingSchema = new mongoose.Schema(
       enum: ["upcoming", "completed", "cancelled"],
       default: "upcoming",
     },
+    title: { type: String }, // Optional, for Google events
+    googleEventId: { type: String }, // For Google Calendar sync
   },
   { timestamps: true }
 );

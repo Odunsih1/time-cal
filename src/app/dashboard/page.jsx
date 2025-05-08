@@ -55,18 +55,9 @@ const Dashboard = () => {
         );
         setIsGoogleConnected(!!userData.googleTokens);
 
-        const bookingsResponse = await axios
-          .get("/api/bookings", {
-            headers: { Authorization: `Bearer ${idToken}` },
-          })
-          .catch((error) => {
-            console.error(
-              "Bookings fetch error:",
-              error.response?.status,
-              error.response?.data
-            );
-            throw error;
-          });
+        const bookingsResponse = await axios.get("/api/bookings", {
+          headers: { Authorization: `Bearer ${idToken}` },
+        });
         setBookings(bookingsResponse.data.bookings);
       } catch (error) {
         console.error("Fetch data error:", error);
@@ -80,8 +71,8 @@ const Dashboard = () => {
       if (currentUser) {
         fetchData(currentUser);
       } else {
-        console.log("No user signed in, redirecting to login");
-        window.location.href = "/auths";
+        console.log("No user signed in, redirecting to root");
+        window.location.href = "/"; // Fixed from /auths
       }
     });
 
@@ -92,14 +83,38 @@ const Dashboard = () => {
     try {
       if (!auth.currentUser) {
         toast.error("Please sign in to connect Google Calendar");
-        window.location.href = "/auths";
+        window.location.href = "/auth";
         return;
       }
-      console.log("Redirecting to Google Calendar OAuth");
-      window.location.href = "/api/auth/google?action=login";
+      const response = await axios.get("/api/auth/google?action=login");
+      console.log("Google OAuth URL:", response.data.authUrl);
+      window.location.href = response.data.authUrl;
     } catch (error) {
       console.error("Google connect error:", error);
-      toast.error("Failed to initiate Google Calendar connection");
+      toast.error(
+        error.response?.data?.details ||
+          "Failed to initiate Google Calendar connection"
+      );
+    }
+  };
+
+  const handleDisconnectGoogleCalendar = async () => {
+    try {
+      const idToken = await auth.currentUser.getIdToken();
+      const response = await axios.post(
+        "/api/calendar/disconnect",
+        {},
+        {
+          headers: { Authorization: `Bearer ${idToken}` },
+        }
+      );
+      toast.success(response.data.message);
+      setIsGoogleConnected(false);
+    } catch (error) {
+      console.error("Disconnect error:", error);
+      toast.error(
+        error.response?.data?.details || "Failed to disconnect Google Calendar"
+      );
     }
   };
 
@@ -109,7 +124,9 @@ const Dashboard = () => {
       await axios.post(
         "/api/calendar/sync",
         {},
-        { headers: { Authorization: `Bearer ${idToken}` } }
+        {
+          headers: { Authorization: `Bearer ${idToken}` },
+        }
       );
       toast.success("Google Calendar synced successfully!");
       const bookingsResponse = await axios.get("/api/bookings", {
@@ -118,7 +135,9 @@ const Dashboard = () => {
       setBookings(bookingsResponse.data.bookings);
     } catch (error) {
       console.error("Sync error:", error);
-      toast.error("Failed to sync Google Calendar");
+      toast.error(
+        error.response?.data?.details || "Failed to sync Google Calendar"
+      );
     }
   };
 
@@ -212,7 +231,7 @@ const Dashboard = () => {
   const handleUpdateBookingStatus = async (bookingId, newStatus) => {
     try {
       const idToken = await auth.currentUser.getIdToken();
-      const response = await axios.post(
+      await axios.post(
         "/api/bookings/update",
         { bookingId, status: newStatus },
         { headers: { Authorization: `Bearer ${idToken}` } }
@@ -226,11 +245,7 @@ const Dashboard = () => {
       );
       toast.success(`Booking marked as ${newStatus}`);
     } catch (error) {
-      console.error(
-        "Update booking status error:",
-        error.response?.data,
-        error
-      );
+      console.error("Update booking status error:", error);
       toast.error("Failed to update booking status");
     }
   };
@@ -261,7 +276,7 @@ const Dashboard = () => {
         <Toaster />
         <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
+            <Card className={"h-80"}>
               <CardHeader>
                 <CardTitle>Profile</CardTitle>
               </CardHeader>
@@ -277,23 +292,33 @@ const Dashboard = () => {
                     <p className="text-gray-600">{user?.title || "No title"}</p>
                   </div>
                 </div>
-                <Button
-                  onClick={handleGoogleCalendarConnect}
-                  className="mt-4 bg-blue-600 hover:bg-blue-500"
-                  disabled={isGoogleConnected}
-                >
-                  {isGoogleConnected
-                    ? "Google Calendar Connected"
-                    : "Connect Google Calendar"}
-                </Button>
-                {isGoogleConnected && (
+                <div className="mt-4 space-x-2">
                   <Button
-                    onClick={handleGoogleCalendarSync}
-                    className="mt-4 ml-2 bg-green-600 hover:bg-green-500"
+                    onClick={handleGoogleCalendarConnect}
+                    className="bg-blue-600 hover:bg-blue-500 mt-1.5"
+                    disabled={isGoogleConnected}
                   >
-                    Sync Google Calendar
+                    {isGoogleConnected
+                      ? "Google Calendar Connected"
+                      : "Connect Google Calendar"}
                   </Button>
-                )}
+                  {isGoogleConnected && (
+                    <>
+                      <Button
+                        onClick={handleGoogleCalendarSync}
+                        className="bg-green-600 hover:bg-green-500 mt-1.5"
+                      >
+                        Sync Google Calendar
+                      </Button>
+                      <Button
+                        onClick={handleDisconnectGoogleCalendar}
+                        className="bg-red-600 hover:bg-red-500 mt-1.5"
+                      >
+                        Disconnect Google Calendar
+                      </Button>
+                    </>
+                  )}
+                </div>
               </CardContent>
             </Card>
             <Card>

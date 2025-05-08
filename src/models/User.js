@@ -54,7 +54,9 @@ const userSchema = new mongoose.Schema(
     notifications: notificationSchema,
     googleTokens: { type: Object, default: null },
     bookingLink: { type: String, default: "" },
+    lastGoogleSync: { type: String },
   },
+
   { timestamps: true }
 );
 

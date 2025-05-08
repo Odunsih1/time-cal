@@ -98,9 +98,9 @@ export async function GET(req) {
       ],
       prompt: "consent",
     });
-    return NextResponse.redirect(url);
+    return NextResponse.json({ authUrl: url }, { status: 200 }); // Return JSON instead of redirect
   }
 
   console.error(`Invalid action: ${action}`);
-  return NextResponse.json({ error: "Invalid action" }, { status: 405 });
+  return NextResponse.json({ error: "Invalid action" }, { status: 400 });
 }
