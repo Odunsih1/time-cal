@@ -5,7 +5,7 @@ import User from "@/models/User";
 export async function GET(request, { params }) {
   try {
     const { userId } = params;
-    console.log("Fetching user:", userId);
+    // console.log("Fetching user:", userId);
 
     await connectMongoDB();
 

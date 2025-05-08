@@ -68,5 +68,5 @@ userSchema.pre("save", function (next) {
   next();
 });
 
-console.log("User schema loaded with password: required=false");
+// console.log("User schema loaded with password: required=false");
 export default mongoose.models.User || mongoose.model("User", userSchema);

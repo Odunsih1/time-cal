@@ -107,15 +107,15 @@ export default function BookingPage() {
 
     setLoading(true);
     try {
-      console.log("Booking payload:", {
-        userId,
-        clientName: clientData.name,
-        clientEmail: clientData.email,
-        clientMessage: clientData.message,
-        date: format(selectedDate, "yyyy-MM-dd"),
-        startTime: selectedSlot.startTime,
-        endTime: selectedSlot.endTime,
-      });
+      // console.log("Booking payload:", {
+      //   userId,
+      //   clientName: clientData.name,
+      //   clientEmail: clientData.email,
+      //   clientMessage: clientData.message,
+      //   date: format(selectedDate, "yyyy-MM-dd"),
+      //   startTime: selectedSlot.startTime,
+      //   endTime: selectedSlot.endTime,
+      // });
       const response = await axios.post("/api/bookings", {
         userId,
         clientName: clientData.name,

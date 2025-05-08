@@ -14,21 +14,21 @@ const serviceAccount = {
 };
 
 if (!admin.apps.length) {
-  console.log(
-    "Initializing Firebase Admin with project ID:",
-    process.env.FIREBASE_PROJECT_ID
-  );
+  // console.log(
+  //   "Initializing Firebase Admin with project ID:",
+  //   process.env.FIREBASE_PROJECT_ID
+  // );
   try {
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
     });
-    console.log("Firebase Admin initialized");
+    // console.log("Firebase Admin initialized");
   } catch (error) {
     console.error("Failed to initialize Firebase Admin:", error);
     throw error;
   }
 } else {
-  console.log("Using existing Firebase Admin app");
+  // console.log("Using existing Firebase Admin app");
 }
 
 const adminAuth = admin.auth();

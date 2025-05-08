@@ -28,10 +28,10 @@ const Page = () => {
   const router = useRouter();
 
   useEffect(() => {
-    console.log("Current URL:", window.location.pathname);
-    console.log("Firebase Auth initialized:", auth.app.name);
+    // console.log("Current URL:", window.location.pathname);
+    // console.log("Firebase Auth initialized:", auth.app.name);
     window.addEventListener("popstate", () => {
-      console.log("Navigation detected:", window.location.pathname);
+      // console.log("Navigation detected:", window.location.pathname);
     });
     return () => window.removeEventListener("popstate", () => {});
   }, []);
@@ -79,10 +79,10 @@ const Page = () => {
 
   const setSessionCookie = async (idToken) => {
     try {
-      console.log(
-        "Setting session cookie with ID token:",
-        idToken.slice(0, 10) + "..."
-      );
+      // console.log(
+      //   "Setting session cookie with ID token:",
+      //   idToken.slice(0, 10) + "..."
+      // );
       await axios.post(
         "/api/auth/set-session",
         { idToken },
@@ -90,7 +90,7 @@ const Page = () => {
           headers: { "Content-Type": "application/json" },
         }
       );
-      console.log("Session cookie set successfully");
+      // console.log("Session cookie set successfully");
     } catch (error) {
       console.error("Set session cookie error:", error.message, error);
       throw new Error("Failed to set session cookie");
@@ -110,11 +110,11 @@ const Page = () => {
           return;
         }
         const profilePicUrl = await uploadProfilePic();
-        console.log("Sending sign-up request:", {
-          fullName: formData.fullName,
-          email: formData.email,
-          profilePicUrl,
-        });
+        // console.log("Sending sign-up request:", {
+        //   fullName: formData.fullName,
+        //   email: formData.email,
+        //   profilePicUrl,
+        // });
         const userCredential = await createUserWithEmailAndPassword(
           auth,
           formData.email,
@@ -129,10 +129,10 @@ const Page = () => {
         });
         await setSessionCookie(idToken);
         toast.success("Sign-up successful!");
-        console.log("Backend signup successful:", response.data);
+        // console.log("Backend signup successful:", response.data);
         router.push("/dashboard");
       } else {
-        console.log("Sending sign-in request:", { email: formData.email });
+        // console.log("Sending sign-in request:", { email: formData.email });
         const userCredential = await signInWithEmailAndPassword(
           auth,
           formData.email,
@@ -144,7 +144,7 @@ const Page = () => {
           idToken,
         });
         toast.success("Sign-in successful!");
-        console.log("Sign-in successful:", response.data);
+        // console.log("Sign-in successful:", response.data);
         router.push("/dashboard");
       }
     } catch (error) {
@@ -173,16 +173,16 @@ const Page = () => {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const idToken = await result.user.getIdToken();
-      console.log("Sending Google sign-in request:", {
-        email: result.user.email,
-      });
+      // console.log("Sending Google sign-in request:", {
+      //   email: result.user.email,
+      // });
       await setSessionCookie(idToken);
       const response = await axios.post("/api/auth/google", {
         idToken,
         fullName: result.user.displayName,
       });
       toast.success("Google sign-in successful!");
-      console.log("Google sign-in successful:", response.data);
+      // console.log("Google sign-in successful:", response.data);
       router.push("/dashboard"); // Changed to /dashboard
     } catch (error) {
       console.error("Google sign-in error:", error.message, error);

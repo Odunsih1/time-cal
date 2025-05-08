@@ -14,16 +14,15 @@ export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const code = searchParams.get("code");
 
-  console.log("Handling OAuth callback with code:", code);
+  // console.log("Handling OAuth callback with code:", code);
 
   try {
-    // Exchange code for tokens
     const { tokens } = await oauth2Client.getToken(code);
     oauth2Client.setCredentials(tokens);
 
     // Check for session cookie
     const sessionCookie = req.cookies.get("session")?.value || "";
-    console.log("Session cookie:", sessionCookie ? "Present" : "Missing");
+    // console.log("Session cookie:", sessionCookie ? "Present" : "Missing");
     if (!sessionCookie) {
       console.error("No session cookie found");
       return NextResponse.json(
@@ -38,7 +37,7 @@ export async function GET(req) {
       true
     );
     const userId = decodedClaims.uid;
-    console.log("Verified user ID:", userId);
+    // console.log("Verified user ID:", userId);
 
     // Connect to MongoDB
     await connectMongoDB();
@@ -54,14 +53,14 @@ export async function GET(req) {
         { status: 404 }
       );
     }
-    console.log("Found user:", { _id: user._id, email: user.email });
+    // console.log("Found user:", { _id: user._id, email: user.email });
 
     // Save Google tokens
     const updateResult = await User.updateOne(
       { _id: userId },
       { $set: { googleTokens: tokens } }
     );
-    console.log("MongoDB update result:", updateResult);
+    // console.log("MongoDB update result:", updateResult);
 
     if (updateResult.matchedCount === 0) {
       console.error("No user matched for update, _id:", userId);
@@ -71,7 +70,7 @@ export async function GET(req) {
       );
     }
 
-    console.log("Google tokens saved for user:", userId);
+    // console.log("Google tokens saved for user:", userId);
     return NextResponse.redirect(new URL("/dashboard", req.url));
   } catch (error) {
     console.error("OAuth callback error:", error.message, error.stack);

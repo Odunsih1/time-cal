@@ -35,7 +35,7 @@ const Dashboard = () => {
       try {
         setLoading(true);
         const idToken = await currentUser.getIdToken();
-        console.log("Firebase ID token:", idToken);
+        // console.log("Firebase ID token:", idToken);
 
         const profileResponse = await axios.get("/api/profile", {
           headers: { Authorization: `Bearer ${idToken}` },
@@ -71,7 +71,7 @@ const Dashboard = () => {
       if (currentUser) {
         fetchData(currentUser);
       } else {
-        console.log("No user signed in, redirecting to root");
+        // console.log("No user signed in, redirecting to root");
         window.location.href = "/"; // Fixed from /auths
       }
     });
@@ -87,7 +87,7 @@ const Dashboard = () => {
         return;
       }
       const response = await axios.get("/api/auth/google?action=login");
-      console.log("Google OAuth URL:", response.data.authUrl);
+      // console.log("Google OAuth URL:", response.data.authUrl);
       window.location.href = response.data.authUrl;
     } catch (error) {
       console.error("Google connect error:", error);

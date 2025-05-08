@@ -6,15 +6,15 @@ import User from "@/models/User";
 import bcrypt from "bcryptjs";
 
 export async function POST(request) {
-  console.log("Received request to /api/auth/signup");
+  // console.log("Received request to /api/auth/signup");
   try {
     const { fullName, email, password, profilePicUrl } = await request.json();
-    console.log("Request payload:", {
-      fullName,
-      email,
-      profilePicUrl,
-      password: password ? "Present" : "Missing",
-    });
+    // console.log("Request payload:", {
+    //   fullName,
+    //   email,
+    //   profilePicUrl,
+    //   password: password ? "Present" : "Missing",
+    // });
 
     // Validate required fields
     if (!fullName || !email) {
@@ -26,10 +26,10 @@ export async function POST(request) {
     }
 
     await connectMongoDB();
-    console.log("MongoDB connected");
+    // console.log("MongoDB connected");
 
     // Check for existing user in MongoDB
-    console.log(`Checking MongoDB for email: ${email}`);
+    // console.log(`Checking MongoDB for email: ${email}`);
     let user = await User.findOne({ email });
     if (user) {
       console.error(
@@ -45,14 +45,14 @@ export async function POST(request) {
     }
 
     // Check for existing Firebase user
-    console.log(`Checking Firebase for email: ${email}`);
+    // console.log(`Checking Firebase for email: ${email}`);
     let firebaseUser;
     try {
       firebaseUser = await adminAuth.getUserByEmail(email);
       console.error("Firebase user found:", firebaseUser.uid);
       // Check if MongoDB is out of sync
       if (!user) {
-        console.log("No MongoDB user, creating one for existing Firebase user");
+        // console.log("No MongoDB user, creating one for existing Firebase user");
         const hashedPassword = password
           ? await bcrypt.hash(password, 10)
           : null;
@@ -65,10 +65,10 @@ export async function POST(request) {
           bookingLink: `https://time-cal.vercel.app/book/${firebaseUser.uid}`,
         });
         await user.save();
-        console.log(
-          "MongoDB user created for existing Firebase user:",
-          firebaseUser.uid
-        );
+        // console.log(
+        //   "MongoDB user created for existing Firebase user:",
+        //   firebaseUser.uid
+        // );
         return NextResponse.json(
           {
             message: "User synced and created",
@@ -86,7 +86,7 @@ export async function POST(request) {
         console.error("Firebase check error:", error.message, error.stack);
         throw error;
       }
-      console.log("No Firebase user found for email:", email);
+      // console.log("No Firebase user found for email:", email);
     }
 
     // Create Firebase user (if password is provided)
@@ -99,14 +99,14 @@ export async function POST(request) {
     }
 
     try {
-      console.log(`Creating Firebase user for email: ${email}`);
+      // console.log(`Creating Firebase user for email: ${email}`);
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
         password
       );
       firebaseUser = userCredential.user;
-      console.log("Firebase user created:", firebaseUser.uid);
+      // console.log("Firebase user created:", firebaseUser.uid);
     } catch (error) {
       console.error("Firebase signup error:", error.code, error.message);
       return NextResponse.json(
@@ -117,7 +117,7 @@ export async function POST(request) {
 
     // Save user to MongoDB
     try {
-      console.log(`Saving user to MongoDB: ${email}`);
+      // console.log(`Saving user to MongoDB: ${email}`);
       const hashedPassword = await bcrypt.hash(password, 10);
       user = new User({
         _id: firebaseUser.uid, // Firebase UID
@@ -128,7 +128,7 @@ export async function POST(request) {
         bookingLink: `https://time-cal.vercel.app/${firebaseUser.uid}`, // Add booking link
       });
       await user.save();
-      console.log("MongoDB user saved:", { _id: firebaseUser.uid, email });
+      // console.log("MongoDB user saved:", { _id: firebaseUser.uid, email });
     } catch (error) {
       console.error(
         "MongoDB save error, rolling back Firebase user:",
@@ -136,7 +136,7 @@ export async function POST(request) {
       );
       try {
         await adminAuth.deleteUser(firebaseUser.uid);
-        console.log("Rolled back Firebase user:", firebaseUser.uid);
+        // console.log("Rolled back Firebase user:", firebaseUser.uid);
       } catch (rollbackError) {
         console.error("Rollback failed:", rollbackError.message);
       }
@@ -146,7 +146,7 @@ export async function POST(request) {
       );
     }
 
-    console.log("User created successfully:", email);
+    // console.log("User created successfully:", email);
     return NextResponse.json(
       {
         message: "User created",

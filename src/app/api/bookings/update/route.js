@@ -8,7 +8,7 @@ import nodemailer from "nodemailer";
 export async function POST(request) {
   try {
     const { bookingId, status } = await request.json();
-    console.log("Update booking request:", { bookingId, status });
+    // console.log("Update booking request:", { bookingId, status });
 
     // Validate request
     if (!bookingId || !status || !["completed", "cancelled"].includes(status)) {
@@ -60,7 +60,7 @@ export async function POST(request) {
     // Update booking status
     booking.status = status;
     await booking.save();
-    console.log("Booking updated:", { bookingId, status });
+    // console.log("Booking updated:", { bookingId, status });
 
     // Fetch user for email notification
     const user = await User.findOne({ _id: userId });
@@ -96,11 +96,11 @@ export async function POST(request) {
       };
 
       await transporter.sendMail(mailOptions);
-      console.log(
-        "Status update email sent to:",
-        booking.clientEmail,
-        user.email
-      );
+      // console.log(
+      //   "Status update email sent to:",
+      //   booking.clientEmail,
+      //   user.email
+      // );
     }
 
     return NextResponse.json(

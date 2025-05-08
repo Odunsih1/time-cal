@@ -7,9 +7,9 @@ import nodemailer from "nodemailer";
 
 export async function GET(request) {
   try {
-    console.log("Received GET request to /api/bookings");
+    // console.log("Received GET request to /api/bookings");
     const authHeader = request.headers.get("Authorization");
-    console.log("Authorization header:", authHeader ? "Present" : "Missing");
+    // console.log("Authorization header:", authHeader ? "Present" : "Missing");
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       console.error("Missing or invalid Authorization header");
@@ -17,21 +17,21 @@ export async function GET(request) {
     }
 
     const idToken = authHeader.split("Bearer ")[1];
-    console.log("Verifying ID token");
+    // console.log("Verifying ID token");
     if (!adminAuth) {
       throw new Error("Firebase auth is not initialized");
     }
     const decodedToken = await adminAuth.verifyIdToken(idToken);
     const userId = decodedToken.uid;
-    console.log("Fetching bookings for user:", userId);
+    // console.log("Fetching bookings for user:", userId);
 
-    console.log("Connecting to MongoDB");
+    // console.log("Connecting to MongoDB");
     await connectMongoDB();
-    console.log("MongoDB connected");
+    // console.log("MongoDB connected");
 
-    console.log("Querying bookings");
+    // console.log("Querying bookings");
     const bookings = await Booking.find({ userId });
-    console.log("Bookings fetched:", bookings.length);
+    // console.log("Bookings fetched:", bookings.length);
 
     return NextResponse.json({ bookings });
   } catch (error) {
@@ -62,14 +62,14 @@ export async function POST(request) {
       startTime,
       endTime,
     } = await request.json();
-    console.log("Booking request:", {
-      userId,
-      clientName,
-      clientEmail,
-      date,
-      startTime,
-      endTime,
-    });
+    // console.log("Booking request:", {
+    //   userId,
+    //   clientName,
+    //   clientEmail,
+    //   date,
+    //   startTime,
+    //   endTime,
+    // });
 
     // Validate required fields
     if (
@@ -88,7 +88,7 @@ export async function POST(request) {
     }
 
     await connectMongoDB();
-    console.log("MongoDB connected");
+    // console.log("MongoDB connected");
 
     // Validate userId exists in User collection
     const user = await User.findOne({ _id: userId });
@@ -156,7 +156,7 @@ export async function POST(request) {
       status: "upcoming", // Explicitly set default status
     });
     await booking.save();
-    console.log("Booking created:", booking._id);
+    // console.log("Booking created:", booking._id);
 
     // Send confirmation email
     const transporter = nodemailer.createTransport({
@@ -188,7 +188,7 @@ export async function POST(request) {
     };
 
     await transporter.sendMail(mailOptions);
-    console.log("Booking confirmation email sent to:", clientEmail, user.email);
+    // console.log("Booking confirmation email sent to:", clientEmail, user.email);
 
     return NextResponse.json(
       { message: "Booking created successfully", bookingId: booking._id },

@@ -15,10 +15,10 @@ const Header = () => {
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
-      console.log("Auth state changed:", user ? user.email : "No user");
+      // console.log("Auth state changed:", user ? user.email : "No user");
       setIsAuthenticated(!!user);
       if (!user) {
-        console.log("No user authenticated, ensuring root page");
+        // console.log("No user authenticated, ensuring root page");
         // Only redirect to / if not already there
         if (window.location.pathname !== "/") {
           router.push("/");
@@ -31,7 +31,7 @@ const Header = () => {
   const handleSignOut = async () => {
     try {
       await signOut(auth);
-      console.log("User signed out");
+      // console.log("User signed out");
       setIsAuthenticated(false);
       toast.success("Signed out successfully!");
       router.push("/");

@@ -4,7 +4,7 @@ import { adminAuth } from "@/lib/firebaseAdmin";
 export async function POST(req) {
   try {
     const { idToken } = await req.json();
-    console.log("Creating session for ID token:", idToken.slice(0, 10) + "...");
+    // console.log("Creating session for ID token:", idToken.slice(0, 10) + "...");
 
     // Verify ID token
     const decodedClaims = await adminAuth.verifyIdToken(idToken);
@@ -30,7 +30,7 @@ export async function POST(req) {
       path: "/",
     });
 
-    console.log("Session cookie set successfully");
+    // console.log("Session cookie set successfully");
     return response;
   } catch (error) {
     console.error("Set session error:", error.message, error.stack);

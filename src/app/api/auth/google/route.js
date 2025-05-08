@@ -13,15 +13,15 @@ const oauth2Client = new google.auth.OAuth2(
 export async function POST(request) {
   try {
     const { idToken, fullName } = await request.json();
-    console.log(
-      "Google Sign-In request with idToken:",
-      idToken.slice(0, 10) + "..."
-    );
+    // console.log(
+    //   "Google Sign-In request with idToken:",
+    //   idToken.slice(0, 10) + "..."
+    // );
     await connectMongoDB();
 
     const decodedToken = await adminAuth.verifyIdToken(idToken);
     const { email, uid } = decodedToken;
-    console.log("Verified Firebase user:", { uid, email });
+    // console.log("Verified Firebase user:", { uid, email });
 
     let user = await User.findOne({ email });
     if (!user) {
@@ -33,9 +33,9 @@ export async function POST(request) {
         password: "", // No password for Google Sign-In
       });
       await user.save();
-      console.log("Created new user:", { _id: uid, email });
+      // console.log("Created new user:", { _id: uid, email });
     } else {
-      console.log("Existing user found:", { _id: user._id, email });
+      // console.log("Existing user found:", { _id: user._id, email });
       if (user._id !== uid) {
         console.warn(
           "UID mismatch for email:",
@@ -61,7 +61,7 @@ export async function POST(request) {
           googleTokens: user.googleTokens || null,
         });
         await user.save();
-        console.log("Recreated user with correct _id:", uid);
+        // console.log("Recreated user with correct _id:", uid);
       }
     }
 
@@ -86,10 +86,10 @@ export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const action = searchParams.get("action");
 
-  console.log(`Received GET request with action: ${action}`);
+  // console.log(`Received GET request with action: ${action}`);
 
   if (action === "login") {
-    console.log("Initiating Google Calendar OAuth login");
+    // console.log("Initiating Google Calendar OAuth login");
     const url = oauth2Client.generateAuthUrl({
       access_type: "offline",
       scope: [

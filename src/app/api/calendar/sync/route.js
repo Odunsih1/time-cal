@@ -10,7 +10,7 @@ export async function POST(req) {
   try {
     const sessionCookie = req.cookies.get("session")?.value || "";
     if (!sessionCookie) {
-      console.log("No session cookie found");
+      // console.log("No session cookie found");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -19,16 +19,16 @@ export async function POST(req) {
       true
     );
     const userId = decodedClaims.uid;
-    console.log("Verified user ID:", userId);
+    // console.log("Verified user ID:", userId);
 
     await connectMongoDB();
     const user = await User.findOne({ _id: userId });
     if (!user) {
-      console.log("User not found in MongoDB:", userId);
+      // console.log("User not found in MongoDB:", userId);
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
     if (!user.googleTokens) {
-      console.log("Google Calendar not connected for user:", userId);
+      // console.log("Google Calendar not connected for user:", userId);
       return NextResponse.json(
         { error: "Google Calendar not connected" },
         { status: 401 }
@@ -45,7 +45,7 @@ export async function POST(req) {
     const calendar = google.calendar({ version: "v3", auth: oauth2Client });
 
     // Fetch Google Calendar events
-    console.log("Fetching Google Calendar events");
+    // console.log("Fetching Google Calendar events");
     const { data: googleEvents } = await calendar.events.list({
       calendarId: "primary",
       timeMin: new Date().toISOString(),
@@ -88,11 +88,11 @@ export async function POST(req) {
     });
 
     // Update MongoDB bookings
-    console.log("Deleting existing Google-synced bookings");
+    // console.log("Deleting existing Google-synced bookings");
     await Booking.deleteMany({ userId, googleEventId: { $exists: true } });
 
     if (bookings.length > 0) {
-      console.log(`Inserting ${bookings.length} new bookings`);
+      // console.log(`Inserting ${bookings.length} new bookings`);
       try {
         await Booking.insertMany(bookings);
       } catch (validationError) {
@@ -106,18 +106,18 @@ export async function POST(req) {
         );
       }
     } else {
-      console.log("No Google events to sync");
+      // console.log("No Google events to sync");
     }
 
     // Sync Time-Cal bookings to Google Calendar
-    console.log("Fetching Time-Cal bookings for Google sync");
+    // console.log("Fetching Time-Cal bookings for Google sync");
     const timeCalBookings = await Booking.find({
       userId,
       googleEventId: { $exists: false },
     });
 
     for (const booking of timeCalBookings) {
-      console.log(`Syncing Time-Cal booking: ${booking._id}`);
+      // console.log(`Syncing Time-Cal booking: ${booking._id}`);
       try {
         // Combine date and time into ISO format
         const startDateTime = parse(
@@ -157,14 +157,14 @@ export async function POST(req) {
           { _id: booking._id },
           { $set: { googleEventId: data.id } }
         );
-        console.log(`Synced booking ${booking._id} to Google event ${data.id}`);
+        // console.log(`Synced booking ${booking._id} to Google event ${data.id}`);
       } catch (error) {
         console.error(`Failed to sync booking ${booking._id}:`, error);
         continue;
       }
     }
 
-    console.log("Calendar sync completed successfully");
+    // console.log("Calendar sync completed successfully");
     return NextResponse.json(
       {
         message: "Calendar synced successfully",

@@ -6,12 +6,12 @@ import User from "@/models/User";
 export async function POST(request) {
   try {
     const { email, idToken } = await request.json();
-    console.log("Sign-in request for email:", email);
+    // console.log("Sign-in request for email:", email);
 
     // Verify Firebase ID token
     const decodedToken = await adminAuth.verifyIdToken(idToken);
     const uid = decodedToken.uid;
-    console.log("Verified Firebase UID:", uid);
+    // console.log("Verified Firebase UID:", uid);
 
     await connectMongoDB();
 
@@ -33,14 +33,14 @@ export async function POST(request) {
         uid
       );
       await User.deleteOne({ _id: user._id });
-      console.log("Deleted user with mismatched _id:", user._id);
+      // console.log("Deleted user with mismatched _id:", user._id);
       return NextResponse.json(
         { error: "User ID mismatch. Please sign up again." },
         { status: 400 }
       );
     }
 
-    console.log("Sign-in successful for user:", { _id: uid, email });
+    // console.log("Sign-in successful for user:", { _id: uid, email });
     return NextResponse.json(
       {
         user: {
