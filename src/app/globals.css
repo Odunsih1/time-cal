@@ -118,3 +118,26 @@
     @apply bg-background text-foreground;
   }
 }
+
+.loader-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* Full-screen height to match Dashboard.jsx loading state */
+}
+
+.calendar-loader {
+  animation: pulse-zoom 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-zoom {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(1.2);
+  }
+}

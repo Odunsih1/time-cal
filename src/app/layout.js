@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "Time-Cal",
   description: "",
+  icons: {
+    icon: "/images/time-cal-logo.png",
+  },
 };
 
 export default function RootLayout({ children }) {

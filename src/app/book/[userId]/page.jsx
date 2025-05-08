@@ -19,6 +19,7 @@ import { Label } from "@/components/ui/label";
 import toast, { Toaster } from "react-hot-toast"; // Import react-hot-toast
 import axios from "axios";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import Loader from "@/components/ui/Loader";
 
 const localizer = dateFnsLocalizer({
   format,
@@ -137,7 +138,7 @@ export default function BookingPage() {
     }
   };
 
-  if (!user) return <div>Loading...</div>;
+  if (!user) return <Loader />;
 
   return (
     <div className="container mx-auto p-4">

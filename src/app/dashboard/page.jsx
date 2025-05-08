@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Calendar as ShadcnCalendar } from "@/components/ui/calendar";
 import { format, addDays } from "date-fns";
 import toast, { Toaster } from "react-hot-toast";
+import Loader from "@/components/ui/Loader";
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
@@ -250,11 +251,7 @@ const Dashboard = () => {
   const maxDate = addDays(today, 5);
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <p>Loading...</p>
-      </div>
-    );
+    return <Loader />;
   }
 
   return (
