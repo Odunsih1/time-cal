@@ -81,7 +81,7 @@ const Dashboard = () => {
         fetchData(currentUser);
       } else {
         console.log("No user signed in, redirecting to login");
-        window.location.href = "/auth";
+        window.location.href = "/auths";
       }
     });
 
@@ -92,7 +92,7 @@ const Dashboard = () => {
     try {
       if (!auth.currentUser) {
         toast.error("Please sign in to connect Google Calendar");
-        window.location.href = "/auth";
+        window.location.href = "/auths";
         return;
       }
       console.log("Redirecting to Google Calendar OAuth");

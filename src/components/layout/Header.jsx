@@ -17,14 +17,22 @@ const Header = () => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       console.log("Auth state changed:", user ? user.email : "No user");
       setIsAuthenticated(!!user);
+      if (!user) {
+        console.log("No user authenticated, ensuring root page");
+        // Only redirect to / if not already there
+        if (window.location.pathname !== "/") {
+          router.push("/");
+        }
+      }
     });
     return () => unsubscribe();
-  }, []);
+  }, [router]);
 
   const handleSignOut = async () => {
     try {
       await signOut(auth);
       console.log("User signed out");
+      setIsAuthenticated(false);
       toast.success("Signed out successfully!");
       router.push("/");
     } catch (error) {
@@ -82,7 +90,7 @@ const Header = () => {
               </Button>
             ) : (
               <Button
-                onClick={() => router.push("/Auth")}
+                onClick={() => router.push("/auths")}
                 className="bg-blue-600 hover:bg-blue-500 text-white"
               >
                 Get Started
@@ -141,7 +149,7 @@ const Header = () => {
                 ) : (
                   <Button
                     onClick={() => {
-                      router.push("/Auth");
+                      router.push("/auths");
                       toggleMenu();
                     }}
                     className="w-full bg-blue-600 hover:bg-blue-500 text-white"

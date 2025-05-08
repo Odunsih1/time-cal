@@ -15,7 +15,7 @@ const Ready = () => {
           Join thousands of freelancers who have taken control of their calender
         </p>
         <Buttons
-          onClick={() => router.push("/Auth")}
+          onClick={() => router.push("/auths")}
           className={
             "bg-blue-600 text-white p-3.5 rounded-lg cursor-pointer text-xl transition hover:bg-blue-500"
           }
