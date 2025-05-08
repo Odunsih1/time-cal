@@ -1,8 +1,11 @@
+"use client";
 import Image from "next/image";
 import React from "react";
 import Buttons from "./Buttons";
+import { useRouter } from "next/navigation";
 
 const Hero = () => {
+  const router = useRouter();
   return (
     <section className="bg-blue-50 py-25">
       <div className="xl:w-[900px] w-[100%] flex lg:flex-row flex-col justify-center m-auto p-10">
@@ -17,6 +20,7 @@ const Hero = () => {
           </p>
           <div className="flex gap-5">
             <Buttons
+              onClick={() => router.push("/Auth")}
               className={
                 "bg-blue-600 text-white p-3.5 rounded-lg cursor-pointer text-xl transition hover:bg-blue-500"
               }

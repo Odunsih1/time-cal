@@ -61,7 +61,7 @@ const userSchema = new mongoose.Schema(
 // Generate booking link on save if not set
 userSchema.pre("save", function (next) {
   if (!this.bookingLink) {
-    this.bookingLink = `http://localhost:3000/book/${this._id}`;
+    this.bookingLink = `https://time-cal.vercel.app/book/${this._id}`;
   }
   next();
 });

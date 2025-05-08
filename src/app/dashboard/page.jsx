@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Header from "@/components/layout/Header";
 import { auth } from "@/lib/firebaseConfig";
 import axios from "axios";
-import { Calendar, User, Copy } from "lucide-react";
+import { Calendar, User, Copy, BellIcon } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Toggle } from "@/components/ui/toggle";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -43,7 +43,8 @@ const Dashboard = () => {
         setUser(userData);
         setNotifications(userData.notifications || notifications);
         setBookingLink(
-          userData.bookingLink || `http://localhost:3000/book/${userData._id}`
+          userData.bookingLink ||
+            `https://time-cal.vercel.app/book/${userData._id}`
         );
         setCustomTimes(
           userData.customAvailability?.reduce((acc, slot) => {
@@ -136,9 +137,14 @@ const Dashboard = () => {
     }
   };
 
-  const handleCopyLink = () => {
-    navigator.clipboard.write(bookingLink);
-    toast.success("Booking link copied!");
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(bookingLink);
+      toast.success("Booking link copied!");
+    } catch (err) {
+      console.error("Failed to copy: ", err);
+      toast.error("Failed to copy link");
+    }
   };
 
   const handleTimeChange = (field, value) => {
@@ -254,7 +260,7 @@ const Dashboard = () => {
   return (
     <>
       <Header />
-      <main className="bg-gray-100 min-h-screen pt-20">
+      <main className="bg-gray-100 min-h-screen p-2 pt-20">
         <Toaster />
         <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -443,7 +449,11 @@ const Dashboard = () => {
                       onPressedChange={(value) =>
                         handleNotificationToggle("newBooking", value)
                       }
-                    />
+                      className="data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
+                    >
+                      <BellIcon className="h-4 w-4" />
+                      <span className="sr-only">Toggle notifications</span>
+                    </Toggle>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Browser Notifications</span>
@@ -452,7 +462,11 @@ const Dashboard = () => {
                       onPressedChange={(value) =>
                         handleNotificationToggle("browser", value)
                       }
-                    />
+                      className="data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
+                    >
+                      <BellIcon className="h-4 w-4" />
+                      <span className="sr-only">Toggle notifications</span>
+                    </Toggle>
                   </div>
                 </div>
               </CardContent>

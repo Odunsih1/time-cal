@@ -1,7 +1,10 @@
+"use client";
 import React from "react";
 import Buttons from "./Buttons";
+import { useRouter } from "next/navigation";
 
 const Ready = () => {
+  const router = useRouter();
   return (
     <section className="bg-blue-50 mt-16">
       <div className="xl:w-[900px] w-[100%] flex flex-col gap-7 text-center justify-center m-auto p-15">
@@ -12,6 +15,7 @@ const Ready = () => {
           Join thousands of freelancers who have taken control of their calender
         </p>
         <Buttons
+          onClick={() => router.push("/Auth")}
           className={
             "bg-blue-600 text-white p-3.5 rounded-lg cursor-pointer text-xl transition hover:bg-blue-500"
           }
