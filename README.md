@@ -1,4 +1,4 @@
-###### Time-Cal
+# Time-Cal
 
 Time-Cal is a scheduling and booking application that allows users to manage appointments, sync with Google Calendar, upload profile images via Cloudinary, and send email notifications using Nodemailer. Built with Next.js, Firebase Authentication, MongoDB, and Google Calendar API, Time-Cal provides a seamless experience for professionals to organize their schedules and for clients to book appointments effortlessly.
 Features
