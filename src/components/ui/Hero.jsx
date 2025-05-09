@@ -14,9 +14,8 @@ const Hero = () => {
             Schedule meetings without the back-and-forth
           </h1>
           <p className="text-xl text-gray-600">
-            TimeCanvas connects your calendar, shows your real-time
-            availability, and lets clients book directly, eliminating scheduling
-            confusion.
+            Time-Cal connects your calendar, shows your real-time availability,
+            and lets clients book directly, eliminating scheduling confusion.
           </p>
           <div className="flex gap-5">
             <Buttons
