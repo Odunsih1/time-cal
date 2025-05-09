@@ -1,11 +1,44 @@
 # Time-Cal
 
-Time-Cal is a scheduling and booking application that allows users to manage appointments, sync with Google Calendar, upload profile images via Cloudinary, and send email notifications using Nodemailer. Built with Next.js, Firebase Authentication, MongoDB, and Google Calendar API, Time-Cal provides a seamless experience for professionals to organize their schedules and for clients to book appointments effortlessly.
-Features
-User Authentication:
-Sign up/sign in with email/password or Google Sign-In via Firebase.
+**Time-Cal** is a Software as a Service (SaaS) platform designed for professionals to manage their schedules, bookings, and client interactions seamlessly. Hosted in the cloud, Time-Cal allows users to set custom availability, integrate with Google Calendar, share public booking links, and receive notifications—all accessible via a web browser. With a multi-tenant architecture, secure authentication, and scalable infrastructure, Time-Cal is ideal for freelancers, consultants, and small businesses.
 
-Secure session management with Firebase session cookies.
+## Features
+
+- **Profile Management**: Update your name, title, and profile picture.
+- **Email Verification**: Verify your email to unlock full functionality, with a prompt on the dashboard for unverified users.
+- **Google Calendar Integration**: Connect and sync bookings with Google Calendar.
+- **Custom Availability**: Set availability for the next 5 days.
+- **Booking Management**: View, mark as completed, or cancel bookings.
+- **Public Booking Link**: Share a unique link for clients to book appointments.
+- **Notifications**: Toggle email or browser notifications for bookings and reminders.
+- **Quick Stats**: Track upcoming and completed bookings.
+
+## Usage
+
+### For Users
+
+#### 1. Sign Up / Sign In
+
+- Navigate to `/auths` to create an account with email/password or sign in with Google.
+- During sign-up, enter a valid email address. You’ll receive a verification email.
+- Click the verification link to activate your account.
+- After signing in, you’ll be redirected to the dashboard (`/dashboard`).
+
+#### 2. Email Verification
+
+- After signing up with email/password, check your inbox for a verification email.
+- Click the link to verify your email address.
+- If unverified, the dashboard displays a yellow notification banner: “Your email is not verified. Please check your inbox for a verification link.”
+- Click “Resend Verification Email” to request a new email.
+- Google Sign-In users are automatically verified.
+
+#### 3. Dashboard Features
+
+- **Profile**: Connect Google Calendar or view your profile details.
+- **Calendar**: Set availability or manage bookings.
+- **Notifications**: Enable/disable notifications.
+- **Booking Link**: Copy and share your booking link.
+- **Quick Stats**: Monitor booking activity.
 
 ## Google Calendar Integration:
 
