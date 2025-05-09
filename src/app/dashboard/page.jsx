@@ -14,8 +14,8 @@ import { Calendar as ShadcnCalendar } from "@/components/ui/calendar";
 import { format, addDays } from "date-fns";
 import toast, { Toaster } from "react-hot-toast";
 import Loader from "@/components/ui/Loader";
-import { sendEmailVerification } from "firebase/auth";
-import { useRouter } from "next/navigation";
+import { getAuth, sendEmailVerification } from "firebase/auth";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
@@ -32,13 +32,22 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [isGoogleConnected, setIsGoogleConnected] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
+    const verified = searchParams.get("verified");
+    const error = searchParams.get("error");
+
+    if (verified === "true") {
+      toast.success("Email verified successfully!");
+    } else if (error) {
+      toast.error(decodeURIComponent(error));
+    }
+
     const fetchData = async (currentUser) => {
       try {
         setLoading(true);
-        const idToken = await currentUser.getIdToken();
-
+        const idToken = await currentUser.getIdToken(true); // Force refresh token
         const profileResponse = await axios.get("/api/profile", {
           headers: { Authorization: `Bearer ${idToken}` },
         });
@@ -56,7 +65,6 @@ const Dashboard = () => {
           }, {}) || {}
         );
         setIsGoogleConnected(!!userData.googleTokens);
-
         const bookingsResponse = await axios.get("/api/bookings", {
           headers: { Authorization: `Bearer ${idToken}` },
         });
@@ -78,7 +86,7 @@ const Dashboard = () => {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [searchParams]);
 
   const handleResendVerification = async () => {
     try {
