@@ -26,11 +26,10 @@ const Page = () => {
     password: "",
     confirmPassword: "",
   });
-  const [emailError, setEmailError] = useState(""); // New state for email validation
+  const [emailError, setEmailError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // Email regex for client-side validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   useEffect(() => {
@@ -192,7 +191,8 @@ const Page = () => {
           ? "Please fill all required fields"
           : error.response?.data?.error?.includes("User not found")
           ? "No account found with this email"
-          : "Authentication failed: " +
+          : // : "Invalid Credentials"
+            "Authentication failed: " +
             (error.response?.data?.error || error.message)
       );
     } finally {
