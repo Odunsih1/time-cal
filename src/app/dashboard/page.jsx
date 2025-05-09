@@ -1,21 +1,23 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Header from "@/components/layout/Header";
-import { auth } from "@/lib/firebaseConfig";
+import { useRouter } from "next/navigation";
+import { getAuth, sendEmailVerification } from "firebase/auth";
 import axios from "axios";
-import { Calendar, User, Copy, BellIcon } from "lucide-react";
+import toast, { Toaster } from "react-hot-toast";
+import Loader from "@/components/ui/Loader";
 import { Button } from "@/components/ui/Button";
+import Header from "@/components/layout/Header";
+import { Calendar, User, Copy, BellIcon } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Calendar as ShadcnCalendar } from "@/components/ui/calendar";
 import { format, addDays } from "date-fns";
-import toast, { Toaster } from "react-hot-toast";
-import Loader from "@/components/ui/Loader";
-import { getAuth, sendEmailVerification } from "firebase/auth";
-import { useRouter, useSearchParams } from "next/navigation";
+import { auth } from "@/lib/firebaseConfig";
+import { Suspense } from "react"; // Add Suspense import
+import VerificationHandler from "@/components/VerificationHandler"; // Import new component
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
@@ -32,26 +34,17 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [isGoogleConnected, setIsGoogleConnected] = useState(false);
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
-    const verified = searchParams.get("verified");
-    const error = searchParams.get("error");
-
-    if (verified === "true") {
-      toast.success("Email verified successfully!");
-    } else if (error) {
-      toast.error(decodeURIComponent(error));
-    }
-
     const fetchData = async (currentUser) => {
       try {
         setLoading(true);
-        const idToken = await currentUser.getIdToken(true); // Force refresh token
+        const idToken = await currentUser.getIdToken(true);
         const profileResponse = await axios.get("/api/profile", {
           headers: { Authorization: `Bearer ${idToken}` },
         });
         const userData = profileResponse.data.user;
+        console.log("Profile data:", userData);
         setUser(userData);
         setNotifications(userData.notifications || notifications);
         setBookingLink(
@@ -81,12 +74,12 @@ const Dashboard = () => {
       if (currentUser) {
         fetchData(currentUser);
       } else {
-        window.location.href = "/";
+        router.push("/auth");
       }
     });
 
     return () => unsubscribe();
-  }, [searchParams]);
+  }, [router]);
 
   const handleResendVerification = async () => {
     try {
@@ -94,7 +87,7 @@ const Dashboard = () => {
       toast.success("Verification email resent! Please check your inbox.");
     } catch (error) {
       console.error("Resend verification error:", error);
-      toast.error("Failed to resend verification email: " + error.message);
+      toast.error(`Failed to resend verification email: ${error.message}`);
     }
   };
 
@@ -102,7 +95,7 @@ const Dashboard = () => {
     try {
       if (!auth.currentUser) {
         toast.error("Please sign in to connect Google Calendar");
-        window.location.href = "/auth";
+        router.push("/auth");
         return;
       }
       const response = await axios.get("/api/auth/google?action=login");
@@ -287,9 +280,12 @@ const Dashboard = () => {
 
   return (
     <>
+      <Toaster />
+      <Suspense fallback={<div>Loading verification status...</div>}>
+        <VerificationHandler />
+      </Suspense>
       <Header />
       <main className="bg-gray-100 min-h-screen p-2 pt-20">
-        <Toaster />
         {user && !user.isEmailVerified && (
           <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded-md mx-auto max-w-7xl mb-6 flex justify-between items-center">
             <p>
