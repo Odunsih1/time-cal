@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import Loader from "./Loader";
 
 const ClientInput = () => {
   const router = useRouter();
@@ -38,12 +39,22 @@ const ClientInput = () => {
         setUser(response.data.user);
       } catch (error) {
         console.error("Error fetching user:", error);
-        toast.error("User not found"); // Use react-hot-toast
+        toast.error("User not found");
         router.push("/");
+      } finally {
+        setLoading(false); // Set loading to false when done
       }
     }
     if (userId) fetchUser();
   }, [userId, router]);
+
+  // Show loading state while user data is being fetched
+  if (loading) {
+    return;
+  }
+
+  // If there's no user (after loading is complete), show an error message
+  if (!user) return <Loader />;
 
   const handleConfirmBooking = async () => {
     if (!clientData.name || !clientData.email) {

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import Loader from "./Loader";
 
 const localizer = dateFnsLocalizer({
   format,
@@ -18,6 +19,7 @@ const localizer = dateFnsLocalizer({
   getDay,
   locales: { "en-US": enUS },
 });
+
 const BookingCard = () => {
   const router = useRouter();
   const { userId } = useParams();
@@ -25,6 +27,8 @@ const BookingCard = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     async function fetchUser() {
       try {
@@ -34,10 +38,18 @@ const BookingCard = () => {
         console.error("Error fetching user:", error);
         toast.error("User not found");
         router.push("/");
+      } finally {
+        setLoading(false);
       }
     }
     if (userId) fetchUser();
   }, [userId, router]);
+
+  if (loading) {
+    return;
+  }
+
+  if (!user) return <Loader />;
 
   const handleSelectDate = ({ start }) => {
     setSelectedDate(start);
@@ -47,8 +59,49 @@ const BookingCard = () => {
   const handleSelectSlot = (slot) => {
     setSelectedSlot(slot);
   };
+  const handleConfirmBooking = async () => {
+    if (!clientData.name || !clientData.email) {
+      toast.error("Please provide name and email"); // Use react-hot-toast
+      return;
+    }
 
-  // Get available slots for selected date
+    if (!selectedDate || !selectedSlot) {
+      toast.error("Please select a date and time slot"); // Use react-hot-toast
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // console.log("Booking payload:", {
+      //   userId,
+      //   clientName: clientData.name,
+      //   clientEmail: clientData.email,
+      //   clientMessage: clientData.message,
+      //   date: format(selectedDate, "yyyy-MM-dd"),
+      //   startTime: selectedSlot.startTime,
+      //   endTime: selectedSlot.endTime,
+      // });
+      const response = await axios.post("/api/bookings", {
+        userId,
+        clientName: clientData.name,
+        clientEmail: clientData.email,
+        clientMessage: clientData.message,
+        date: format(selectedDate, "yyyy-MM-dd"),
+        startTime: selectedSlot.startTime,
+        endTime: selectedSlot.endTime,
+      });
+      toast.success(response.data.message); // Use react-hot-toast
+      setIsModalOpen(false);
+      setClientData({ name: "", email: "", message: "" });
+      setSelectedDate(null);
+      setSelectedSlot(null);
+    } catch (error) {
+      console.error("Booking error:", error.response?.data, error);
+      toast.error(error.response?.data?.error || "Failed to create booking");
+    } finally {
+      setLoading(false);
+    }
+  };
   const availableSlots = selectedDate
     ? (() => {
         const dateStr = format(selectedDate, "yyyy-MM-dd");
