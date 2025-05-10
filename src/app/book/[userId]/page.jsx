@@ -334,6 +334,8 @@ export default function BookingPage() {
                 min={new Date()}
                 date={currentDate}
                 onNavigate={handleNavigate}
+                longPressThreshold={100}
+                onSelectEvent={() => {}}
               />
             </div>
 

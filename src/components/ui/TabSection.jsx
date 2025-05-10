@@ -164,11 +164,11 @@ const TabSection = () => {
       }
       const idToken = await auth.currentUser.getIdToken();
       const payload = { availability: formData.availability };
-      console.log("Sending availability update:", payload);
+      //   console.log("Sending availability update:", payload);
       const response = await axios.post("/api/profile/update", payload, {
         headers: { Authorization: `Bearer ${idToken}` },
       });
-      console.log("Availability update response:", response.data);
+      //   console.log("Availability update response:", response.data);
       setUser((prev) => ({
         ...prev,
         availability: response.data.user?.availability || prev.availability,
@@ -189,11 +189,11 @@ const TabSection = () => {
     try {
       const idToken = await auth.currentUser.getIdToken();
       const payload = { notifications: formData.notifications };
-      console.log("Sending notification update:", payload);
+      //   console.log("Sending notification update:", payload);
       const response = await axios.post("/api/profile/update", payload, {
         headers: { Authorization: `Bearer ${idToken}` },
       });
-      console.log("Notification update response:", response.data);
+      //   console.log("Notification update response:", response.data);
       setUser(response.data.user);
       toast.success("Notification settings updated successfully!");
     } catch (error) {
@@ -247,7 +247,7 @@ const TabSection = () => {
   return (
     <section>
       <div className="mt-5">
-        <div className="bg-gray-100 rounded-md p-1 w-full overflow-x-auto">
+        <div className="bg-gray-100 rounded-md p-1 max-w-[250px] w-full overflow-x-auto">
           <div className="flex gap-8 min-w-max">
             {["General", "Availability", "Notification"].map((tab) => (
               <div
