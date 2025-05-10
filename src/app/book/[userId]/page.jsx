@@ -50,6 +50,7 @@ export default function BookingPage() {
   });
   const [loading, setLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
+  const [currentDate, setCurrentDate] = useState(new Date());
 
   useEffect(() => {
     async function fetchUser() {
@@ -115,6 +116,10 @@ export default function BookingPage() {
         return regularSlots;
       })()
     : [];
+
+  const handleNavigate = (newDate) => {
+    setCurrentDate(newDate);
+  };
 
   const handleConfirmBooking = async () => {
     if (!clientData.name || !clientData.email) {
@@ -327,6 +332,8 @@ export default function BookingPage() {
                 views={["month"]}
                 defaultView="month"
                 min={new Date()}
+                date={currentDate}
+                onNavigate={handleNavigate}
               />
             </div>
 
