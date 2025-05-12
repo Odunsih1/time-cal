@@ -411,7 +411,7 @@ export default function BookingPage() {
                   onChange={(e) =>
                     setClientData({ ...clientData, name: e.target.value })
                   }
-                  placeholder="John Doe"
+                  placeholder="Your Name"
                   className="mt-1"
                 />
               </div>
