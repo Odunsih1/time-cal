@@ -1,3 +1,4 @@
+// src/models/User.js
 import mongoose from "mongoose";
 
 const availabilitySchema = new mongoose.Schema({
@@ -38,6 +39,12 @@ const notificationSchema = new mongoose.Schema({
   },
 });
 
+const emailSettingsSchema = new mongoose.Schema({
+  dailyDigest: { type: Boolean, default: true },
+  upcomingTasks: { type: Boolean, default: true },
+  overdueReminders: { type: Boolean, default: true },
+});
+
 const userSchema = new mongoose.Schema(
   {
     _id: { type: String, required: true },
@@ -52,6 +59,7 @@ const userSchema = new mongoose.Schema(
     availability: [availabilitySchema],
     customAvailability: [customAvailabilitySchema],
     notifications: notificationSchema,
+    emailSettings: emailSettingsSchema,
     googleTokens: { type: Object, default: null },
     bookingLink: { type: String, default: "" },
     lastGoogleSync: { type: String },
@@ -59,7 +67,6 @@ const userSchema = new mongoose.Schema(
     resetPasswordExpiry: { type: Number, default: null },
     isEmailVerified: { type: Boolean, default: false },
   },
-
   { timestamps: true }
 );
 
@@ -71,5 +78,4 @@ userSchema.pre("save", function (next) {
   next();
 });
 
-// console.log("User schema loaded with password: required=false");
 export default mongoose.models.User || mongoose.model("User", userSchema);

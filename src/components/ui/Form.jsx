@@ -364,7 +364,7 @@ const Form = () => {
             </button>
           </div>
           <div className="mt-4" />
-          <label
+          {/* <label
             className="block text-sm sm:text-base font-medium text-gray-700"
             htmlFor="profile-pic"
           >
@@ -388,7 +388,7 @@ const Form = () => {
               />
             </div>
           )}
-          <div className="mt-4" />
+          <div className="mt-4" /> */}
         </>
       )}
 

@@ -1,7 +1,9 @@
+// src/app/api/profile/route.js
 import { NextResponse } from "next/server";
 import { adminAuth } from "@/lib/firebaseAdmin";
 import { connectMongoDB } from "@/lib/mongoose";
 import User from "@/models/User";
+import { adminFirestore } from "@/lib/firebaseAdmin";
 
 export async function GET(request) {
   try {
@@ -14,7 +16,6 @@ export async function GET(request) {
     const idToken = authHeader.split("Bearer ")[1];
     const decodedToken = await adminAuth.verifyIdToken(idToken);
     const userId = decodedToken.uid;
-    // console.log("Fetching profile for user:", userId);
 
     await connectMongoDB();
 
@@ -36,7 +37,9 @@ export async function GET(request) {
         hourlyRate: user.hourlyRate,
         about: user.about,
         availability: user.availability,
+        customAvailability: user.customAvailability,
         notifications: user.notifications,
+        emailSettings: user.emailSettings,
         googleTokens: user.googleTokens,
         bookingLink: user.bookingLink,
       },
@@ -58,17 +61,16 @@ export async function POST(request) {
     const idToken = authHeader.split("Bearer ")[1];
     const decodedToken = await adminAuth.verifyIdToken(idToken);
     const userId = decodedToken.uid;
-    const { notifications, availability } = await request.json();
-    // console.log("Updating profile for user:", userId, {
-    //   notifications,
-    //   availability,
-    // });
+    const { notifications, availability, customAvailability, emailSettings } =
+      await request.json();
 
     await connectMongoDB();
 
     const updateData = {};
     if (notifications) updateData.notifications = notifications;
     if (availability) updateData.availability = availability;
+    if (customAvailability) updateData.customAvailability = customAvailability;
+    if (emailSettings) updateData.emailSettings = emailSettings;
 
     const user = await User.findOneAndUpdate(
       { _id: userId },
@@ -80,7 +82,14 @@ export async function POST(request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // console.log("Profile updated for user:", userId);
+    await adminFirestore.collection("users").doc(userId).set(
+      {
+        email: user.email,
+        emailSettings: user.emailSettings,
+      },
+      { merge: true }
+    );
+
     return NextResponse.json({ message: "Profile updated" });
   } catch (error) {
     console.error("Profile update error:", error.message, error.stack);

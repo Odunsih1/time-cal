@@ -214,7 +214,7 @@ const TabSection = () => {
       ...prev,
       availability: [
         ...prev.availability,
-        { day: "Monday", startTime: "09:00", endTime: "17:00" },
+        { day: "Not set", startTime: "00:00", endTime: "00:00" },
       ],
     }));
   };
@@ -415,6 +415,10 @@ const TabSection = () => {
                         }
                         className="p-2 border-2 border-gray-300 rounded-md"
                       >
+                        {" "}
+                        <option value="Not set" disabled>
+                          Select a day
+                        </option>
                         {[
                           "Monday",
                           "Tuesday",

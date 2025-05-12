@@ -14,7 +14,7 @@ export async function GET(request) {
     const idToken = authHeader.split("Bearer ")[1];
     const decodedToken = await adminAuth.verifyIdToken(idToken);
     const userId = decodedToken.uid;
-    // console.log("Fetching profile for user:", userId);
+    console.log("Fetching profile for user:", userId);
 
     await connectMongoDB();
 
@@ -69,17 +69,17 @@ export async function POST(request) {
       customAvailability,
       notifications,
     } = await request.json();
-    // console.log("Updating profile for user:", userId, {
-    //   fullName,
-    //   title,
-    //   location,
-    //   hourlyRate,
-    //   about,
-    //   profilePicUrl,
-    //   availability,
-    //   customAvailability,
-    //   notifications,
-    // });
+    console.log("Updating profile for user:", userId, {
+      fullName,
+      title,
+      location,
+      hourlyRate,
+      about,
+      profilePicUrl,
+      availability,
+      customAvailability,
+      notifications,
+    });
 
     await connectMongoDB();
 
@@ -170,7 +170,7 @@ export async function POST(request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // console.log("Profile updated for user:", userId);
+    console.log("Profile updated for user:", userId);
     return NextResponse.json({ user, message: "Profile updated" });
   } catch (error) {
     console.error("Profile update error:", error.message, error.stack);

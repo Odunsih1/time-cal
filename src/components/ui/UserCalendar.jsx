@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar as ShadcnCalendar } from "@/components/ui/calendar";
 import { format, addDays } from "date-fns";
 import { auth } from "@/lib/firebaseConfig";
+
 const UserCalendar = () => {
   const [user, setUser] = useState(null);
   const [bookings, setBookings] = useState([]);
@@ -43,7 +44,7 @@ const UserCalendar = () => {
             `https://time-cal.vercel.app/book/${userData._id}`
         );
         setCustomTimes(
-          userData.availability?.reduce((acc, slot) => {
+          userData.customAvailability?.reduce((acc, slot) => {
             acc[slot.date] = { start: slot.startTime, end: slot.endTime };
             return acc;
           }, {}) || {}
@@ -110,22 +111,27 @@ const UserCalendar = () => {
         endTime: customTimes[dateKey].end,
       };
       const customAvailability = [
-        ...(user.availability || []).filter((slot) => slot.date !== dateKey),
+        ...(user.customAvailability || []).filter(
+          (slot) => slot.date !== dateKey
+        ), // Use user.customAvailability
         newCustomAvailability,
       ];
+      console.log("Sending customAvailability:", customAvailability);
       await axios.post(
         "/api/profile/update",
-        { availability: customAvailability },
+        { customAvailability },
         { headers: { Authorization: `Bearer ${idToken}` } }
       );
       setUser((prev) => ({
         ...prev,
-        availability: customAvailability,
+        customAvailability,
       }));
       toast.success("Custom availability updated!");
     } catch (error) {
       console.error("Update custom availability error:", error);
-      toast.error("Failed to update custom availability");
+      toast.error(
+        error.response?.data?.error || "Failed to update custom availability"
+      );
     } finally {
       setLoading(false);
     }
@@ -196,7 +202,7 @@ const UserCalendar = () => {
                   <select
                     value={
                       customTimes[format(selectedDate, "yyyy-MM-dd")]?.start ||
-                      "09:00"
+                      "00:00"
                     }
                     onChange={(e) => handleTimeChange("start", e.target.value)}
                     className="p-2 border rounded-md"
@@ -211,7 +217,7 @@ const UserCalendar = () => {
                   <select
                     value={
                       customTimes[format(selectedDate, "yyyy-MM-dd")]?.end ||
-                      "17:00"
+                      "00:00"
                     }
                     onChange={(e) => handleTimeChange("end", e.target.value)}
                     className="p-2 border rounded-md"
