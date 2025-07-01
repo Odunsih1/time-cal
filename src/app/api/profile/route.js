@@ -1,4 +1,3 @@
-// src/app/api/profile/route.js
 import { NextResponse } from "next/server";
 import { adminAuth } from "@/lib/firebaseAdmin";
 import { connectMongoDB } from "@/lib/mongoose";
