@@ -7,6 +7,7 @@ import toast, { Toaster } from "react-hot-toast";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { auth } from "@/lib/firebaseConfig";
+import { CheckCircle2, RefreshCw, Unplug, Calendar } from "lucide-react";
 
 const Profile = () => {
   const [user, setUser] = useState(null);
@@ -21,6 +22,7 @@ const Profile = () => {
   const [bookingLink, setBookingLink] = useState("");
   const [loading, setLoading] = useState(true);
   const [isGoogleConnected, setIsGoogleConnected] = useState(false);
+  const [syncLoading, setSyncLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -32,7 +34,6 @@ const Profile = () => {
           headers: { Authorization: `Bearer ${idToken}` },
         });
         const userData = profileResponse.data.user;
-        // console.log("Profile data:", userData);
         setUser(userData);
         setNotifications(userData.notifications || notifications);
         setBookingLink(
@@ -109,6 +110,7 @@ const Profile = () => {
 
   const handleGoogleCalendarSync = async () => {
     try {
+      setSyncLoading(true);
       const idToken = await auth.currentUser.getIdToken();
       await axios.post(
         "/api/calendar/sync",
@@ -127,50 +129,118 @@ const Profile = () => {
       toast.error(
         error.response?.data?.details || "Failed to sync Google Calendar"
       );
+    } finally {
+      setSyncLoading(false);
     }
   };
+
+  if (loading) {
+    return (
+      <Card className="min-h-[400px] border-2 border-slate-100">
+        <CardContent className="flex items-center justify-center h-full pt-6">
+          <div className="text-center">
+            <RefreshCw className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-2" />
+            <p className="text-slate-600">Loading profile...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
-    <Card className="h-80">
-      <CardHeader>
-        <CardTitle>Profile</CardTitle>
+    <Card className="border-2 border-slate-100 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
+      <CardHeader className="bg-slate-50 border-b border-slate-100 pb-6">
+        <CardTitle className="text-2xl font-bold text-slate-900">
+          Profile
+        </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="flex items-center space-x-4">
-          <img
-            src={user?.profilePicUrl || "/images/user.png"}
-            alt="Profile"
-            className="w-16 h-16 rounded-full"
-          />
-          <div>
-            <h3 className="text-lg font-semibold">{user?.fullName}</h3>
-            <p className="text-gray-600">{user?.title || "No title"}</p>
+      <CardContent className="p-8">
+        {/* User Info Section */}
+        <div className="flex items-start space-x-6 mb-8">
+          <div className="relative">
+            <img
+              src={user?.profilePicUrl || "/images/user.png"}
+              alt="Profile"
+              className="w-20 h-20 rounded-2xl ring-4 ring-slate-100 object-cover"
+            />
+            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-4 border-white"></div>
+          </div>
+          <div className="flex-1">
+            <h3 className="text-2xl font-bold text-slate-900 mb-1">
+              {user?.fullName}
+            </h3>
+            <p className="text-slate-600 text-base">
+              {user?.title || "No title set"}
+            </p>
+            {user?.email && (
+              <p className="text-slate-500 text-sm mt-1">{user.email}</p>
+            )}
           </div>
         </div>
-        <div className="mt-4 space-x-2">
-          <Button
-            onClick={handleGoogleCalendarConnect}
-            className="bg-blue-600 hover:bg-blue-500 mt-1.5 cursor-pointer"
-            disabled={isGoogleConnected}
-          >
-            {isGoogleConnected
-              ? "Google Calendar Connected"
-              : "Connect Google Calendar"}
-          </Button>
+
+        {/* Calendar Integration Section */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <Calendar className="w-5 h-5 text-slate-600" />
+            <h4 className="font-semibold text-slate-900">
+              Calendar Integration
+            </h4>
+          </div>
+
+          {/* Connection Status */}
           {isGoogleConnected && (
-            <>
+            <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-4">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-green-600" />
+                <span className="text-green-800 font-medium">
+                  Google Calendar Connected
+                </span>
+              </div>
+              <p className="text-green-700 text-sm mt-1 ml-7">
+                Your calendar is synced and ready to use
+              </p>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex flex-wrap gap-3">
+            {!isGoogleConnected ? (
               <Button
-                onClick={handleGoogleCalendarSync}
-                className="bg-green-600 hover:bg-green-500 mt-1.5 cursor-pointer"
+                onClick={handleGoogleCalendarConnect}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-all hover:shadow-lg hover:shadow-blue-600/20 hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2"
               >
-                Sync Google Calendar
+                <Calendar className="w-4 h-4" />
+                Connect Google Calendar
               </Button>
-              <Button
-                onClick={handleDisconnectGoogleCalendar}
-                className="bg-red-600 hover:bg-red-500 mt-1.5 cursor-pointer"
-              >
-                Disconnect Google Calendar
-              </Button>
-            </>
+            ) : (
+              <>
+                <Button
+                  onClick={handleGoogleCalendarSync}
+                  disabled={syncLoading}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl cursor-pointer font-semibold transition-all hover:shadow-lg hover:shadow-emerald-600/20 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 flex items-center gap-2"
+                >
+                  <RefreshCw
+                    className={`w-4 h-4 ${syncLoading ? "animate-spin" : ""}`}
+                  />
+                  {syncLoading ? "Syncing..." : "Sync Calendar"}
+                </Button>
+                <Button
+                  onClick={handleDisconnectGoogleCalendar}
+                  className="bg-slate-100 hover:bg-red-50 text-slate-700 cursor-pointer hover:text-red-700 border-2 border-slate-200 hover:border-red-200 px-6 py-3 rounded-xl font-semibold transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2"
+                >
+                  <Unplug className="w-4 h-4" />
+                  Disconnect
+                </Button>
+              </>
+            )}
+          </div>
+
+          {/* Helper Text */}
+          {!isGoogleConnected && (
+            <p className="text-slate-500 text-sm mt-4 pl-1">
+              Connect your Google Calendar to sync your availability and
+              automatically manage bookings
+            </p>
           )}
         </div>
       </CardContent>
