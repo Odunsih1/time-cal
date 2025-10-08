@@ -251,7 +251,7 @@ const Notification = () => {
               className={`w-full px-4 py-3 rounded-xl cursor-pointer font-semibold transition-all flex items-center justify-center gap-2 ${
                 copied
                   ? "bg-green-600 hover:bg-green-700 text-white"
-                  : "bg-emerald-600 hover:bg-emerald-700 text-white hover:shadow-lg hover:shadow-emerald-600/20 hover:-translate-y-0.5 active:translate-y-0"
+                  : "bg-emerald-600 hover:bg-emerald-700 text-white hover:shadow-sm hover:shadow-emerald-600/20 active:translate-y-0"
               }`}
             >
               {copied ? (

@@ -430,7 +430,7 @@ const UserCalendar = () => {
                                   "completed"
                                 )
                               }
-                              className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-semibold transition-all hover:shadow-lg hover:shadow-emerald-600/20 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2"
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-semibold transition-all hover:shadow-sm hover:shadow-emerald-600/20 cursor-pointer active:translate-y-0 flex items-center justify-center gap-2"
                             >
                               <CheckCircle className="w-4 h-4" />
                               Complete
@@ -442,7 +442,7 @@ const UserCalendar = () => {
                                   "cancelled"
                                 )
                               }
-                              className="bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-700 border-2 border-slate-200 hover:border-red-200 px-4 py-2 rounded-lg font-semibold transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2"
+                              className="bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-700 border-2 border-slate-200 hover:border-red-200 px-4 py-2 rounded-lg font-semibold transition-all cursor-pointer active:translate-y-0 flex items-center justify-center gap-2"
                             >
                               <XCircle className="w-4 h-4" />
                               Cancel

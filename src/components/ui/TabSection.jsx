@@ -431,7 +431,7 @@ const TabSection = () => {
                         <button
                           type="submit"
                           disabled={loading}
-                          className="w-full bg-blue-600 cursor-pointer hover:bg-blue-700 text-white px-6 py-4 rounded-xl font-semibold transition-all hover:shadow-lg hover:shadow-blue-600/20 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                          className="w-full bg-blue-600 cursor-pointer hover:bg-blue-700 text-white px-6 py-4 rounded-xl font-semibold transition-all hover:shadow-sm hover:shadow-blue-600/20  active:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                         >
                           <Save className="w-5 h-5" />
                           {loading ? "Saving..." : "Save Changes"}
@@ -553,7 +553,7 @@ const TabSection = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 rounded-xl cursor-pointer font-semibold transition-all hover:shadow-lg hover:shadow-blue-600/20 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 rounded-xl cursor-pointer font-semibold transition-all hover:shadow-sm hover:shadow-blue-600/20  active:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                   >
                     <Save className="w-5 h-5" />
                     {loading ? "Saving..." : "Save Availability"}
@@ -653,7 +653,7 @@ const TabSection = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 rounded-xl cursor-pointer font-semibold transition-all hover:shadow-lg hover:shadow-blue-600/20 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 rounded-xl cursor-pointer font-semibold transition-all hover:shadow-sm hover:shadow-blue-600/20  active:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                   >
                     <Save className="w-5 h-5" />
                     {loading ? "Saving..." : "Save Notification Settings"}
