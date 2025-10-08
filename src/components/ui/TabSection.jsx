@@ -1,10 +1,23 @@
 "use client";
-import Buttons from "@/components/ui/Buttons";
 import React, { useState, useEffect } from "react";
 import { auth } from "@/lib/firebaseConfig";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import toast, { Toaster } from "react-hot-toast";
+import {
+  User,
+  Clock,
+  Bell,
+  Upload,
+  MapPin,
+  DollarSign,
+  Mail,
+  Briefcase,
+  Plus,
+  Trash2,
+  Save,
+  Check,
+} from "lucide-react";
 
 const TabSection = () => {
   const [user, setUser] = useState(null);
@@ -34,15 +47,10 @@ const TabSection = () => {
       try {
         const idToken = await auth.currentUser?.getIdToken();
         if (!idToken) throw new Error("No user logged in");
-        // console.log(
-        //   "Fetching profile with token:",
-        //   idToken.slice(0, 10) + "..."
-        // );
         const response = await axios.get("/api/profile", {
           headers: { Authorization: `Bearer ${idToken}` },
         });
         const userData = response.data.user;
-        // console.log("Fetched user data:", userData);
         setUser(userData);
         setFormData({
           fullName: userData.fullName || "",
@@ -111,7 +119,6 @@ const TabSection = () => {
       const response = await axios.post("/api/upload", uploadData, {
         headers: { Authorization: `Bearer ${idToken}` },
       });
-      // console.log("Profile picture uploaded:", response.data.url);
       return response.data.url;
     } catch (error) {
       console.error("Profile picture upload error:", error);
@@ -134,11 +141,9 @@ const TabSection = () => {
         about: formData.about,
         profilePicUrl,
       };
-      // console.log("Sending general update:", payload);
       const response = await axios.post("/api/profile/update", payload, {
         headers: { Authorization: `Bearer ${idToken}` },
       });
-      // console.log("General update response:", response.data);
       setUser(response.data.user);
       toast.success("Profile updated successfully!");
     } catch (error) {
@@ -154,7 +159,6 @@ const TabSection = () => {
     if (loading) return;
     setLoading(true);
     try {
-      // Validate availability
       for (const slot of formData.availability) {
         if (!slot.day || !slot.startTime || !slot.endTime) {
           throw new Error(
@@ -164,11 +168,9 @@ const TabSection = () => {
       }
       const idToken = await auth.currentUser.getIdToken();
       const payload = { availability: formData.availability };
-      //   console.log("Sending availability update:", payload);
       const response = await axios.post("/api/profile/update", payload, {
         headers: { Authorization: `Bearer ${idToken}` },
       });
-      //   console.log("Availability update response:", response.data);
       setUser((prev) => ({
         ...prev,
         availability: response.data.user?.availability || prev.availability,
@@ -189,11 +191,9 @@ const TabSection = () => {
     try {
       const idToken = await auth.currentUser.getIdToken();
       const payload = { notifications: formData.notifications };
-      //   console.log("Sending notification update:", payload);
       const response = await axios.post("/api/profile/update", payload, {
         headers: { Authorization: `Bearer ${idToken}` },
       });
-      //   console.log("Notification update response:", response.data);
       setUser(response.data.user);
       toast.success("Notification settings updated successfully!");
     } catch (error) {
@@ -241,334 +241,428 @@ const TabSection = () => {
 
   const tabVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.4, ease: "easeOut" },
+    },
     exit: { opacity: 0, y: -20, transition: { duration: 0.3 } },
   };
+
+  const tabs = [
+    { name: "General", icon: User },
+    { name: "Availability", icon: Clock },
+    { name: "Notification", icon: Bell },
+  ];
+
   return (
-    <section>
-      <div className="mt-5">
-        <div className="bg-gray-100 rounded-md p-1 max-w-[250px] w-full overflow-x-auto">
-          <div className="flex gap-8 min-w-max">
-            {["General", "Availability", "Notification"].map((tab) => (
-              <div
-                key={tab}
-                className={`p-1 pr-2 pl-2 rounded-md cursor-pointer ${
-                  activeTab === tab ? "bg-white text-black" : ""
-                }`}
-                onClick={() => setActiveTab(tab)}
-              >
-                <h3>{tab}</h3>
-              </div>
-            ))}
+    <section className="py-8">
+      <div className="bg-white border-2 border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+        {/* Tab Navigation */}
+        <div className="bg-slate-50 border-b-2 border-slate-200 p-6">
+          <div className="flex gap-2 overflow-x-auto">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.name}
+                  className={`flex items-center gap-2 px-6 cursor-pointer py-3 rounded-xl font-semibold transition-all whitespace-nowrap ${
+                    activeTab === tab.name
+                      ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
+                      : "bg-white text-slate-700 hover:bg-slate-100 border-2 border-slate-200"
+                  }`}
+                  onClick={() => setActiveTab(tab.name)}
+                >
+                  <Icon className="w-4 h-4" />
+                  {tab.name}
+                </button>
+              );
+            })}
           </div>
         </div>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            variants={tabVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            className="p-7"
-          >
-            {activeTab === "General" && (
-              <div className="flex justify-between flex-col lg:flex-row">
-                <div>
-                  <img
-                    src={formData.profilePicUrl || "/images/user.png"}
-                    width={100}
-                    height={100}
-                    alt="Profile picture"
-                    className="rounded-full mt-6"
-                  />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleProfilePicChange}
-                    className="mt-3"
-                  />
-                </div>
-                <form onSubmit={handleGeneralSubmit}>
-                  <div className="flex flex-col md:flex-row gap-5">
-                    <div className="w-full">
-                      <label
-                        className="block text-sm sm:text-base font-medium text-gray-700"
-                        htmlFor="fullName"
-                      >
-                        Full Name
-                      </label>
-                      <input
-                        className="p-2 text-base sm:text-lg pr-3 py-2 w-full  border-2 border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Henry Odunsi"
-                        type="text"
-                        id="fullName"
-                        name="fullName"
-                        value={formData.fullName}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    <div className="w-full">
-                      <label
-                        className="block text-sm sm:text-base font-medium text-gray-700"
-                        htmlFor="title"
-                      >
-                        Title
-                      </label>
-                      <input
-                        className="p-2 text-base sm:text-lg pr-3 py-2 w-full border-2 border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Web Developer"
-                        type="text"
-                        id="title"
-                        name="title"
-                        value={formData.title}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-                  </div>
-                  <div className="flex flex-col md:flex-row gap-5 mt-4">
-                    <div className="w-full">
-                      <label
-                        className="block text-sm sm:text-base font-medium text-gray-700"
-                        htmlFor="email"
-                      >
-                        Email
-                      </label>
-                      <input
-                        className="p-2 text-base sm:text-lg pr-3 py-2 w-full border-2 border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        type="email"
-                        id="email"
-                        name="email"
-                        value={formData.email}
-                        readOnly
-                      />
-                    </div>
-                    <div className="w-full">
-                      <label
-                        className="block text-sm sm:text-base font-medium text-gray-700"
-                        htmlFor="location"
-                      >
-                        Location
-                      </label>
-                      <input
-                        className="p-2 text-base sm:text-lg pr-3 py-2 w-full border-2 border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        type="text"
-                        id="location"
-                        name="location"
-                        value={formData.location}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-                  </div>
-                  <div className="mt-4">
-                    <label
-                      className="block text-sm sm:text-base font-medium text-gray-700"
-                      htmlFor="hourlyRate"
-                    >
-                      Hourly Rate ($)
-                    </label>
-                    <input
-                      className="p-2 text-base sm:text-lg w-full pr-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      type="number"
-                      id="hourlyRate"
-                      name="hourlyRate"
-                      value={formData.hourlyRate}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="mt-4">
-                    <label
-                      className="block text-sm sm:text-base font-medium text-gray-700"
-                      htmlFor="about"
-                    >
-                      About
-                    </label>
-                    <textarea
-                      className="p-2 text-base sm:text-lg w-full pr-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      id="about"
-                      name="about"
-                      value={formData.about}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <Buttons
-                    name={loading ? "Saving..." : "Save Changes"}
-                    className="bg-blue-600 text-white p-2 rounded-md cursor-pointer transition hover:bg-blue-500 mt-4"
-                    disabled={loading}
-                  />
-                </form>
-              </div>
-            )}
-            {activeTab === "Availability" && (
-              <form onSubmit={handleAvailabilitySubmit}>
-                <div>
-                  <h3 className="text-lg font-medium">Set Your Availability</h3>
-                  {formData.availability.map((slot, index) => (
-                    <div
-                      key={index}
-                      className="flex flex-col md:flex-row gap-4 mt-4 items-center border rounded-md p-1 md:border-0 border-gray-300"
-                    >
-                      <select
-                        value={slot.day}
-                        onChange={(e) =>
-                          updateAvailability(index, "day", e.target.value)
-                        }
-                        className="p-2 border-2 border-gray-300 rounded-md"
-                      >
-                        {" "}
-                        <option value="Not set" disabled>
-                          Select a day
-                        </option>
-                        {[
-                          "Monday",
-                          "Tuesday",
-                          "Wednesday",
-                          "Thursday",
-                          "Friday",
-                          "Saturday",
-                          "Sunday",
-                        ].map((day) => (
-                          <option key={day} value={day}>
-                            {day}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="flex gap-1.5  items-center">
-                        <select
-                          value={slot.startTime}
-                          onChange={(e) =>
-                            updateAvailability(
-                              index,
-                              "startTime",
-                              e.target.value
-                            )
-                          }
-                          className="p-2 border-2 border-gray-300 rounded-md"
-                        >
-                          {timeOptions.map((time) => (
-                            <option key={time} value={time}>
-                              {time}
-                            </option>
-                          ))}
-                        </select>
-                        <span>to</span>
-                        <select
-                          value={slot.endTime}
-                          onChange={(e) =>
-                            updateAvailability(index, "endTime", e.target.value)
-                          }
-                          className="p-2 border-2 border-gray-300 rounded-md"
-                        >
-                          {timeOptions.map((time) => (
-                            <option key={time} value={time}>
-                              {time}
-                            </option>
-                          ))}
-                        </select>
+
+        {/* Tab Content */}
+        <div className="p-8">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              variants={tabVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+            >
+              {/* General Tab */}
+              {activeTab === "General" && (
+                <div className="space-y-8">
+                  <div className="flex flex-col lg:flex-row gap-8">
+                    {/* Profile Picture Section */}
+                    <div className="lg:w-1/3">
+                      <div className="bg-slate-50 border-2 border-slate-200 rounded-2xl p-6 text-center">
+                        <div className="relative inline-block">
+                          <img
+                            src={formData.profilePicUrl || "/images/user.png"}
+                            width={120}
+                            height={120}
+                            alt="Profile picture"
+                            className="rounded-2xl ring-4 ring-slate-100 mx-auto"
+                          />
+                          <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center border-4 border-white">
+                            <Upload className="w-5 h-5 text-white" />
+                          </div>
+                        </div>
+                        <label className="mt-6 inline-flex items-center gap-2 bg-white border-2 border-slate-200 px-4 py-2 rounded-xl font-medium text-slate-700 cursor-pointer hover:bg-slate-50 transition-all">
+                          <Upload className="w-4 h-4" />
+                          Upload Photo
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleProfilePicChange}
+                            className="hidden"
+                          />
+                        </label>
+                        {profilePic && (
+                          <p className="text-sm text-green-600 mt-2 flex items-center justify-center gap-1">
+                            <Check className="w-4 h-4" />
+                            New photo selected
+                          </p>
+                        )}
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => removeAvailability(index)}
-                        className="text-red-600 hover:underline"
-                      >
-                        Remove
-                      </button>
                     </div>
-                  ))}
+
+                    {/* Form Section */}
+                    <div className="lg:w-2/3">
+                      <form
+                        onSubmit={handleGeneralSubmit}
+                        className="space-y-6"
+                      >
+                        <div className="grid md:grid-cols-2 gap-6">
+                          <div>
+                            <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
+                              <User className="w-4 h-4" />
+                              Full Name
+                            </label>
+                            <input
+                              className="w-full p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+                              placeholder="Henry Odunsi"
+                              type="text"
+                              name="fullName"
+                              value={formData.fullName}
+                              onChange={handleInputChange}
+                              required
+                            />
+                          </div>
+
+                          <div>
+                            <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
+                              <Briefcase className="w-4 h-4" />
+                              Title
+                            </label>
+                            <input
+                              className="w-full p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+                              placeholder="Web Developer"
+                              type="text"
+                              name="title"
+                              value={formData.title}
+                              onChange={handleInputChange}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-6">
+                          <div>
+                            <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
+                              <Mail className="w-4 h-4" />
+                              Email
+                            </label>
+                            <input
+                              className="w-full p-3 border-2 border-slate-200 rounded-xl bg-slate-50 text-slate-500"
+                              type="email"
+                              name="email"
+                              value={formData.email}
+                              readOnly
+                            />
+                          </div>
+
+                          <div>
+                            <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
+                              <MapPin className="w-4 h-4" />
+                              Location
+                            </label>
+                            <input
+                              className="w-full p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+                              placeholder="Lagos, Nigeria"
+                              type="text"
+                              name="location"
+                              value={formData.location}
+                              onChange={handleInputChange}
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
+                            <DollarSign className="w-4 h-4" />
+                            Hourly Rate ($)
+                          </label>
+                          <input
+                            className="w-full p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+                            placeholder="50"
+                            type="number"
+                            name="hourlyRate"
+                            value={formData.hourlyRate}
+                            onChange={handleInputChange}
+                          />
+                        </div>
+
+                        <div>
+                          <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
+                            <User className="w-4 h-4" />
+                            About
+                          </label>
+                          <textarea
+                            className="w-full p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors min-h-[120px]"
+                            placeholder="Tell us about yourself..."
+                            name="about"
+                            value={formData.about}
+                            onChange={handleInputChange}
+                          />
+                        </div>
+
+                        <button
+                          type="submit"
+                          disabled={loading}
+                          className="w-full bg-blue-600 cursor-pointer hover:bg-blue-700 text-white px-6 py-4 rounded-xl font-semibold transition-all hover:shadow-lg hover:shadow-blue-600/20 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                        >
+                          <Save className="w-5 h-5" />
+                          {loading ? "Saving..." : "Save Changes"}
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Availability Tab */}
+              {activeTab === "Availability" && (
+                <form onSubmit={handleAvailabilitySubmit} className="space-y-6">
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
+                    <Clock className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm text-blue-800">
+                      <p className="font-medium mb-1">
+                        Set Your Weekly Schedule
+                      </p>
+                      <p className="text-blue-700">
+                        Define your regular availability for each day of the
+                        week
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    {formData.availability.map((slot, index) => (
+                      <div
+                        key={index}
+                        className="bg-white border-2 border-slate-200 rounded-xl p-6 hover:shadow-md transition-all"
+                      >
+                        <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
+                          <div className="flex-1 grid md:grid-cols-3 gap-4 w-full">
+                            <select
+                              value={slot.day}
+                              onChange={(e) =>
+                                updateAvailability(index, "day", e.target.value)
+                              }
+                              className="p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+                            >
+                              <option value="Not set" disabled>
+                                Select a day
+                              </option>
+                              {[
+                                "Monday",
+                                "Tuesday",
+                                "Wednesday",
+                                "Thursday",
+                                "Friday",
+                                "Saturday",
+                                "Sunday",
+                              ].map((day) => (
+                                <option key={day} value={day}>
+                                  {day}
+                                </option>
+                              ))}
+                            </select>
+
+                            <select
+                              value={slot.startTime}
+                              onChange={(e) =>
+                                updateAvailability(
+                                  index,
+                                  "startTime",
+                                  e.target.value
+                                )
+                              }
+                              className="p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+                            >
+                              {timeOptions.map((time) => (
+                                <option key={time} value={time}>
+                                  {time}
+                                </option>
+                              ))}
+                            </select>
+
+                            <select
+                              value={slot.endTime}
+                              onChange={(e) =>
+                                updateAvailability(
+                                  index,
+                                  "endTime",
+                                  e.target.value
+                                )
+                              }
+                              className="p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+                            >
+                              {timeOptions.map((time) => (
+                                <option key={time} value={time}>
+                                  {time}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => removeAvailability(index)}
+                            className="bg-red-50 hover:bg-red-100 text-red-600 border-2 cursor-pointer border-red-200 px-4 py-3 rounded-xl font-medium transition-all flex items-center gap-2"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
                   <button
                     type="button"
                     onClick={addAvailability}
-                    className="mt-4 text-blue-600 hover:underline"
+                    className="w-full border-2 border-dashed cursor-pointer border-slate-300 hover:border-blue-500 bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-600 px-6 py-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
                   >
-                    + Add Availability
+                    <Plus className="w-5 h-5" />
+                    Add Availability Slot
                   </button>
-                </div>
-                <Buttons
-                  name={loading ? "Saving..." : "Save Availability"}
-                  className="bg-blue-600 text-white p-2 rounded-md cursor-pointer transition hover:bg-blue-500 mt-4"
-                  disabled={loading}
-                />
-              </form>
-            )}
-            {activeTab === "Notification" && (
-              <form onSubmit={handleNotificationSubmit}>
-                <div className="mb-6">
-                  <h3 className="text-lg font-medium">Email Notifications</h3>
-                  <div className="mt-4 space-y-2">
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        name="newBooking"
-                        checked={formData.notifications.newBooking}
-                        onChange={handleNotificationChange}
-                        className="mr-2"
-                      />
-                      New booking notifications
-                    </label>
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        name="cancelledBooking"
-                        checked={formData.notifications.cancelledBooking}
-                        onChange={handleNotificationChange}
-                        className="mr-2"
-                      />
-                      Cancelled booking notifications
-                    </label>
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        name="reminder"
-                        checked={formData.notifications.reminder}
-                        onChange={handleNotificationChange}
-                        className="mr-2"
-                      />
-                      Reminder emails (24 hours before booking)
-                    </label>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 rounded-xl cursor-pointer font-semibold transition-all hover:shadow-lg hover:shadow-blue-600/20 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                  >
+                    <Save className="w-5 h-5" />
+                    {loading ? "Saving..." : "Save Availability"}
+                  </button>
+                </form>
+              )}
+
+              {/* Notification Tab */}
+              {activeTab === "Notification" && (
+                <form onSubmit={handleNotificationSubmit} className="space-y-8">
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                      <Bell className="w-5 h-5" />
+                      Email Notifications
+                    </h3>
+                    <div className="space-y-4">
+                      {[
+                        {
+                          name: "newBooking",
+                          label: "New booking notifications",
+                          description:
+                            "Get notified when someone books a meeting",
+                        },
+                        {
+                          name: "cancelledBooking",
+                          label: "Cancelled booking notifications",
+                          description:
+                            "Get notified when a booking is cancelled",
+                        },
+                        {
+                          name: "reminder",
+                          label: "Reminder emails",
+                          description:
+                            "Receive reminders 24 hours before bookings",
+                        },
+                      ].map((notification) => (
+                        <label
+                          key={notification.name}
+                          className="flex items-start gap-4 bg-white border-2 border-slate-200 rounded-xl p-5 hover:shadow-md transition-all cursor-pointer group"
+                        >
+                          <input
+                            type="checkbox"
+                            name={notification.name}
+                            checked={formData.notifications[notification.name]}
+                            onChange={handleNotificationChange}
+                            className="mt-1 w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-200 cursor-pointer"
+                          />
+                          <div className="flex-1">
+                            <p className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
+                              {notification.label}
+                            </p>
+                            <p className="text-sm text-slate-600 mt-1">
+                              {notification.description}
+                            </p>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <h3 className="text-lg font-medium">Client Communication</h3>
-                  <div className="mt-4">
-                    <label
-                      className="block text-sm sm:text-base font-medium text-gray-700"
-                      htmlFor="bookingConfirmationMessage"
-                    >
-                      Booking Confirmation Message
-                    </label>
-                    <textarea
-                      className="p-2 text-base sm:text-lg w-full pr-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      id="bookingConfirmationMessage"
-                      name="bookingConfirmationMessage"
-                      value={formData.notifications.bookingConfirmationMessage}
-                      onChange={handleMessageChange}
-                    />
+
+                  <div className="border-t-2 border-slate-200 pt-8">
+                    <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                      <Mail className="w-5 h-5" />
+                      Client Communication
+                    </h3>
+                    <div className="space-y-6">
+                      <div>
+                        <label className="block text-sm font-semibold text-slate-700 mb-2">
+                          Booking Confirmation Message
+                        </label>
+                        <textarea
+                          className="w-full p-4 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors min-h-[100px]"
+                          placeholder="Thank you for your booking!"
+                          name="bookingConfirmationMessage"
+                          value={
+                            formData.notifications.bookingConfirmationMessage
+                          }
+                          onChange={handleMessageChange}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-slate-700 mb-2">
+                          Reminder Message
+                        </label>
+                        <textarea
+                          className="w-full p-4 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors min-h-[100px]"
+                          placeholder="Reminder: Your booking is tomorrow!"
+                          name="reminderMessage"
+                          value={formData.notifications.reminderMessage}
+                          onChange={handleMessageChange}
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div className="mt-4">
-                    <label
-                      className="block text-sm sm:text-base font-medium text-gray-700"
-                      htmlFor="reminderMessage"
-                    >
-                      Reminder Message
-                    </label>
-                    <textarea
-                      className="p-2 text-base sm:text-lg w-full pr-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      id="reminderMessage"
-                      name="reminderMessage"
-                      value={formData.notifications.reminderMessage}
-                      onChange={handleMessageChange}
-                    />
-                  </div>
-                </div>
-                <Buttons
-                  name={loading ? "Saving..." : "Save Notification Settings"}
-                  className="bg-blue-600 text-white p-2 rounded-md cursor-pointer transition hover:bg-blue-500 mt-4"
-                  disabled={loading}
-                />
-              </form>
-            )}
-          </motion.div>
-        </AnimatePresence>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 rounded-xl cursor-pointer font-semibold transition-all hover:shadow-lg hover:shadow-blue-600/20 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                  >
+                    <Save className="w-5 h-5" />
+                    {loading ? "Saving..." : "Save Notification Settings"}
+                  </button>
+                </form>
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </div>
     </section>
   );
