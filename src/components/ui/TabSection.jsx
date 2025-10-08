@@ -34,15 +34,15 @@ const TabSection = () => {
       try {
         const idToken = await auth.currentUser?.getIdToken();
         if (!idToken) throw new Error("No user logged in");
-        console.log(
-          "Fetching profile with token:",
-          idToken.slice(0, 10) + "..."
-        );
+        // console.log(
+        //   "Fetching profile with token:",
+        //   idToken.slice(0, 10) + "..."
+        // );
         const response = await axios.get("/api/profile", {
           headers: { Authorization: `Bearer ${idToken}` },
         });
         const userData = response.data.user;
-        console.log("Fetched user data:", userData);
+        // console.log("Fetched user data:", userData);
         setUser(userData);
         setFormData({
           fullName: userData.fullName || "",
@@ -111,7 +111,7 @@ const TabSection = () => {
       const response = await axios.post("/api/upload", uploadData, {
         headers: { Authorization: `Bearer ${idToken}` },
       });
-      console.log("Profile picture uploaded:", response.data.url);
+      // console.log("Profile picture uploaded:", response.data.url);
       return response.data.url;
     } catch (error) {
       console.error("Profile picture upload error:", error);
@@ -134,11 +134,11 @@ const TabSection = () => {
         about: formData.about,
         profilePicUrl,
       };
-      console.log("Sending general update:", payload);
+      // console.log("Sending general update:", payload);
       const response = await axios.post("/api/profile/update", payload, {
         headers: { Authorization: `Bearer ${idToken}` },
       });
-      console.log("General update response:", response.data);
+      // console.log("General update response:", response.data);
       setUser(response.data.user);
       toast.success("Profile updated successfully!");
     } catch (error) {

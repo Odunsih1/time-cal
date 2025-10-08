@@ -36,7 +36,7 @@ const UserCalendar = () => {
           headers: { Authorization: `Bearer ${idToken}` },
         });
         const userData = profileResponse.data.user;
-        console.log("Profile data:", userData);
+        // console.log("Profile data:", userData);
         setUser(userData);
         setNotifications(userData.notifications || notifications);
         setBookingLink(
@@ -116,7 +116,7 @@ const UserCalendar = () => {
         ), // Use user.customAvailability
         newCustomAvailability,
       ];
-      console.log("Sending customAvailability:", customAvailability);
+      // console.log("Sending customAvailability:", customAvailability);
       await axios.post(
         "/api/profile/update",
         { customAvailability },

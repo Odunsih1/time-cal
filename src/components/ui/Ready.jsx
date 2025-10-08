@@ -17,9 +17,9 @@ const Ready = () => {
         <Buttons
           onClick={() => router.push("/auths")}
           className={
-            "bg-blue-600 text-white p-3.5 rounded-lg cursor-pointer text-xl transition hover:bg-blue-500"
+            "bg-blue-600 inline-flex items-center gap-2  text-white cursor-pointer px-8 py-4 rounded-xl font-semibold text-lg transition-all hover:bg-slate-800 hover:shadow-xl hover:shadow-slate-900/20 hover:-translate-y-0.5 active:translate-y-0 "
           }
-          name={"Start For Free"}
+          name={"Get Started for Free"}
         />
       </div>
     </section>
