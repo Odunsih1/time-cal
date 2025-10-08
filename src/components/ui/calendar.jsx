@@ -11,13 +11,13 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }) {
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      className={cn("p-3", className)}
+      className={cn("p-3 w-full", className)}
       classNames={{
-        months: "flex flex-col sm:flex-row gap-2",
-        month: "flex flex-col gap-4",
-        caption: "flex justify-center pt-1 relative items-center w-full",
+        months: "flex flex-col w-full sm:flex-row gap-2",
+        month: "flex flex-col w-full gap-4",
+        caption: "flex  justify-center pt-1 relative items-center w-full",
         caption_label: "text-sm font-medium",
-        nav: "flex items-center gap-1",
+        nav: "flex w-full items-center gap-1",
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
           "size-7 bg-transparent p-0 opacity-50 hover:opacity-100"
@@ -25,10 +25,10 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }) {
         nav_button_previous: "absolute left-1",
         nav_button_next: "absolute right-1",
         table: "w-full border-collapse space-x-1",
-        head_row: "flex",
+        head_row: "flex justify-evenly",
         head_cell:
           "text-muted-foreground rounded-md w-8 font-normal text-[0.8rem]",
-        row: "flex w-full mt-2",
+        row: "flex justify-evenly w-full mt-2",
         cell: cn(
           "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent [&:has([aria-selected].day-range-end)]:rounded-r-md",
           props.mode === "range"

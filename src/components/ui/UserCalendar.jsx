@@ -217,7 +217,7 @@ const UserCalendar = () => {
 
   return (
     <Card className="border-2 border-slate-100 shadow-sm hover:shadow-md transition-shadow duration-300">
-      <CardHeader className="bg-slate-50 border-b border-slate-100">
+      <CardHeader className="bg-slate-50 border-b p-4 border-slate-100">
         <div className="flex  items-center gap-3">
           <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
             <CalendarIcon className="w-5 h-5 text-white" />
@@ -272,7 +272,7 @@ const UserCalendar = () => {
                 onSelect={setSelectedDate}
                 fromDate={today}
                 toDate={maxDate}
-                className="rounded-xl border-2 border-slate-200 shadow-sm mx-auto"
+                className="rounded-xl border-2 border-slate-200 w-full shadow-sm mx-auto"
               />
 
               {selectedDate && (
@@ -336,7 +336,7 @@ const UserCalendar = () => {
 
                   <Button
                     onClick={saveCustomTimes}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-all hover:shadow-lg hover:shadow-blue-600/20 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                    className="w-full bg-blue-600 cursor-pointer hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-all hover:shadow-sm hover:shadow-blue-600/20  active:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                     disabled={loading}
                   >
                     <Save className="w-4 h-4" />

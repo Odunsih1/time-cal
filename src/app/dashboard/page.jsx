@@ -40,7 +40,7 @@ const Dashboard = () => {
           headers: { Authorization: `Bearer ${idToken}` },
         });
         const userData = profileResponse.data.user;
-        console.log("Profile data:", userData);
+        // console.log("Profile data:", userData);
         setUser(userData);
         setNotifications(userData.notifications || notifications);
         setBookingLink(

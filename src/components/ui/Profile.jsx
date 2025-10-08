@@ -7,7 +7,7 @@ import toast, { Toaster } from "react-hot-toast";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { auth } from "@/lib/firebaseConfig";
-import { CheckCircle2, RefreshCw, Unplug, Calendar } from "lucide-react";
+import { CheckCircle2, RefreshCw, Unplug, Calendar, User } from "lucide-react";
 
 const Profile = () => {
   const [user, setUser] = useState(null);
@@ -149,10 +149,15 @@ const Profile = () => {
 
   return (
     <Card className="border-2 border-slate-100 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
-      <CardHeader className="bg-slate-50 border-b border-slate-100 pb-6">
-        <CardTitle className="text-2xl font-bold text-slate-900">
-          Profile
-        </CardTitle>
+      <CardHeader className="bg-slate-50 border-b p-4 border-slate-100 pb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center">
+            <User className="w-5 h-5 text-white" />
+          </div>
+          <CardTitle className="text-xl font-bold text-slate-900">
+            Profile
+          </CardTitle>
+        </div>
       </CardHeader>
       <CardContent className="p-8">
         {/* User Info Section */}
@@ -217,7 +222,7 @@ const Profile = () => {
                 <Button
                   onClick={handleGoogleCalendarSync}
                   disabled={syncLoading}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl cursor-pointer font-semibold transition-all hover:shadow-lg hover:shadow-emerald-600/20 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 flex items-center gap-2"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl cursor-pointer font-semibold transition-all hover:shadow-sm hover:shadow-emerald-600/20  active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 flex items-center gap-2"
                 >
                   <RefreshCw
                     className={`w-4 h-4 ${syncLoading ? "animate-spin" : ""}`}
@@ -226,7 +231,7 @@ const Profile = () => {
                 </Button>
                 <Button
                   onClick={handleDisconnectGoogleCalendar}
-                  className="bg-slate-100 hover:bg-red-50 text-slate-700 cursor-pointer hover:text-red-700 border-2 border-slate-200 hover:border-red-200 px-6 py-3 rounded-xl font-semibold transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2"
+                  className="bg-slate-100 hover:bg-red-50 text-slate-700 cursor-pointer hover:text-red-700 border-2 border-slate-200 hover:border-red-200 px-6 py-3 rounded-xl font-semibold transition-all  active:translate-y-0 flex items-center gap-2"
                 >
                   <Unplug className="w-4 h-4" />
                   Disconnect
