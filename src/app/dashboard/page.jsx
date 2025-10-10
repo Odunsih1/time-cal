@@ -70,7 +70,7 @@ const Dashboard = () => {
       if (currentUser) {
         fetchData(currentUser);
       } else {
-        router.push("/auth");
+        router.push("/auths");
       }
     });
 

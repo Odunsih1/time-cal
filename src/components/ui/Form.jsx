@@ -1,6 +1,14 @@
 "use client";
 import Buttons from "@/components/ui/Buttons";
-import { Calendar, Eye, EyeOff } from "lucide-react";
+import {
+  Calendar,
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  User as UserIcon,
+  ArrowRight,
+} from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { auth } from "@/lib/firebaseConfig";
 import {
@@ -13,6 +21,7 @@ import {
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
+
 const Form = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
@@ -72,7 +81,6 @@ const Form = () => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
-    // Validate email on change
     if (name === "email") {
       if (!value) {
         setEmailError("Email is required");
@@ -149,7 +157,6 @@ const Form = () => {
         );
         const idToken = await userCredential.user.getIdToken();
 
-        // Send email verification
         await sendEmailVerification(userCredential.user);
 
         const response = await axios.post("/api/auth/signup", {
@@ -190,8 +197,7 @@ const Form = () => {
           ? "Please fill all required fields"
           : error.response?.data?.error?.includes("User not found")
           ? "No account found with this email"
-          : // : "Invalid Credentials"
-            "Authentication failed: " +
+          : "Authentication failed: " +
             (error.response?.data?.error || error.message)
       );
     } finally {
@@ -220,24 +226,31 @@ const Form = () => {
       setLoading(false);
     }
   };
+
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white py-6 px-4 sm:px-8 md:px-10 shadow rounded-lg border w-full max-w-lg sm:max-w-md border-gray-300"
+      className="bg-white py-8 px-6 sm:px-10 md:px-12 shadow-xl rounded-2xl border-2 border-slate-200 w-full max-w-lg sm:max-w-md hover:shadow-2xl transition-shadow duration-300"
     >
-      <div className="text-center flex flex-col gap-4 sm:gap-6 mb-6">
-        <h1 className="flex justify-center text-xl sm:text-2xl gap-1.5 font-semibold">
-          <Calendar className="text-blue-600 h-6 w-6" /> Time-Cal
-        </h1>
+      {/* Header */}
+      <div className="text-center flex flex-col gap-6 mb-8">
+        <div className="flex justify-center items-center gap-2">
+          <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
+            <Calendar className="text-white h-7 w-7" />
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
+            Time-Cal
+          </h1>
+        </div>
         <div>
-          <h2 className="text-xl sm:text-2xl font-semibold">
+          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
             {isForgotPassword
-              ? "Reset Your Password"
+              ? "Reset Password"
               : isSignUp
-              ? "Create an account"
-              : "Welcome back"}
+              ? "Create Account"
+              : "Welcome Back"}
           </h2>
-          <p className="text-gray-600 text-sm sm:text-base">
+          <p className="text-slate-600 text-sm sm:text-base">
             {isForgotPassword
               ? "Enter your email to receive a password reset link"
               : isSignUp
@@ -247,198 +260,193 @@ const Form = () => {
         </div>
       </div>
 
-      {isSignUp && !isForgotPassword && (
-        <>
+      {/* Form Fields */}
+      <div className="space-y-5">
+        {isSignUp && !isForgotPassword && (
+          <div>
+            <label
+              className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2"
+              htmlFor="name"
+            >
+              <UserIcon className="w-4 h-4" />
+              Full Name
+            </label>
+            <input
+              className="w-full p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors text-base"
+              placeholder="Henry Odunsi"
+              type="text"
+              id="name"
+              name="fullName"
+              value={formData.fullName}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+        )}
+
+        <div>
           <label
-            className="block text-sm sm:text-base font-medium text-gray-700"
-            htmlFor="name"
+            className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2"
+            htmlFor="email"
           >
-            Full Name
+            <Mail className="w-4 h-4" />
+            Email
           </label>
           <input
-            className="p-2 text-base sm:text-lg block w-full pr-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Henry Odunsi"
-            type="text"
-            id="name"
-            name="fullName"
-            value={formData.fullName}
+            className={`w-full p-3 border-2 ${
+              emailError
+                ? "border-red-500 ring-2 ring-red-200"
+                : "border-slate-200"
+            } rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors text-base`}
+            placeholder="name@example.com"
+            type="email"
+            id="email"
+            name="email"
+            value={formData.email}
             onChange={handleInputChange}
             required
           />
-          <div className="mt-4" />
-        </>
-      )}
+          {emailError && (
+            <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+              <span className="w-1 h-1 bg-red-600 rounded-full"></span>
+              {emailError}
+            </p>
+          )}
+        </div>
 
-      <label
-        className="block text-sm sm:text-base font-medium text-gray-700"
-        htmlFor="email"
-      >
-        Email
-      </label>
-      <input
-        className={`p-2 text-base sm:text-lg block w-full pr-3 py-2 border-2 ${
-          emailError ? "border-red-500" : "border-gray-300"
-        } rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
-        placeholder="name@example.com"
-        type="email"
-        id="email"
-        name="email"
-        value={formData.email}
-        onChange={handleInputChange}
-        required
-      />
-      {emailError && <p className="mt-1 text-sm text-red-600">{emailError}</p>}
-      <div className="mt-4" />
-
-      {!isForgotPassword && (
-        <>
-          <label
-            className="flex justify-between text-sm sm:text-base font-medium text-gray-700"
-            htmlFor="password"
-          >
-            Password
-            {!isSignUp && (
+        {!isForgotPassword && (
+          <div>
+            <label
+              className="flex justify-between items-center text-sm font-semibold text-slate-700 mb-2"
+              htmlFor="password"
+            >
+              <span className="flex items-center gap-2">
+                <Lock className="w-4 h-4" />
+                Password
+              </span>
+              {!isSignUp && (
+                <button
+                  type="button"
+                  className="text-blue-600 text-xs font-medium cursor-pointer hover:underline transition"
+                  onClick={toggleForgotPassword}
+                >
+                  Forgot password?
+                </button>
+              )}
+            </label>
+            <div className="relative">
+              <input
+                className="w-full p-3 pr-12 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors text-base"
+                type={showPassword ? "text" : "password"}
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                required
+              />
               <button
                 type="button"
-                className="text-blue-600 transition hover:underline"
-                onClick={toggleForgotPassword}
+                className="absolute inset-y-0 right-0 flex items-center pr-4 hover:bg-slate-50 rounded-r-xl transition"
+                onClick={togglePasswordVisibility}
               >
-                Forgot password?
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5 text-slate-500" />
+                ) : (
+                  <Eye className="h-5 w-5 text-slate-500" />
+                )}
               </button>
-            )}
-          </label>
-          <div className="relative">
-            <input
-              className="p-2 text-base sm:text-lg block w-full pr-10 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              type={showPassword ? "text" : "password"}
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              required
-            />
-            <button
-              type="button"
-              className="absolute inset-y-0 right-0 flex items-center pr-3"
-              onClick={togglePasswordVisibility}
-            >
-              {showPassword ? (
-                <EyeOff className="h-5 w-5 text-gray-500" />
-              ) : (
-                <Eye className="h-5 w-5 text-gray-500" />
-              )}
-            </button>
-          </div>
-          <div className="mt-4" />
-        </>
-      )}
-
-      {isSignUp && !isForgotPassword && (
-        <>
-          <label
-            className="block text-sm sm:text-base font-medium text-gray-700"
-            htmlFor="confirm-password"
-          >
-            Confirm Password
-          </label>
-          <div className="relative">
-            <input
-              className="p-2 text-base sm:text-lg block w-full pr-10 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              type={showConfirmPassword ? "text" : "password"}
-              id="confirm-password"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleInputChange}
-              required
-            />
-            <button
-              type="button"
-              className="absolute inset-y-0 right-0 flex items-center pr-3"
-              onClick={toggleConfirmPasswordVisibility}
-            >
-              {showConfirmPassword ? (
-                <EyeOff className="h-5 w-5 text-gray-500" />
-              ) : (
-                <Eye className="h-5 w-5 text-gray-500" />
-              )}
-            </button>
-          </div>
-          <div className="mt-4" />
-          {/* <label
-            className="block text-sm sm:text-base font-medium text-gray-700"
-            htmlFor="profile-pic"
-          >
-            Profile Picture (Optional)
-          </label>
-          <div className="relative">
-            <input
-              className="p-2 text-base sm:text-lg block w-full border-2 border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-blue-50 file:text-blue-700 file:cursor-pointer hover:file:bg-blue-100"
-              type="file"
-              id="profile-pic"
-              accept="image/*"
-              onChange={handleProfilePicChange}
-            />
-          </div>
-          {profilePic && (
-            <div className="mt-3 flex justify-center">
-              <img
-                src={URL.createObjectURL(profilePic)}
-                alt="Profile Preview"
-                className="h-16 w-16 sm:h-20 sm:w-20 rounded-full object-cover"
-              />
             </div>
-          )}
-          <div className="mt-4" /> */}
-        </>
-      )}
+          </div>
+        )}
 
-      <Buttons
-        className="bg-blue-600 mt-3 p-2 text-white w-full rounded-md cursor-pointer transition hover:bg-blue-500 text-base sm:text-lg"
-        name={
-          loading
-            ? "Loading..."
-            : isForgotPassword
-            ? "Send Reset Link"
-            : isSignUp
-            ? "Sign up"
-            : "Sign in"
-        }
+        {isSignUp && !isForgotPassword && (
+          <div>
+            <label
+              className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2"
+              htmlFor="confirm-password"
+            >
+              <Lock className="w-4 h-4" />
+              Confirm Password
+            </label>
+            <div className="relative">
+              <input
+                className="w-full p-3 pr-12 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors text-base"
+                type={showConfirmPassword ? "text" : "password"}
+                id="confirm-password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                required
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 flex items-center pr-4 hover:bg-slate-50 rounded-r-xl transition"
+                onClick={toggleConfirmPasswordVisibility}
+              >
+                {showConfirmPassword ? (
+                  <EyeOff className="h-5 w-5 text-slate-500" />
+                ) : (
+                  <Eye className="h-5 w-5 text-slate-500" />
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Submit Button */}
+      <button
+        type="submit"
         disabled={loading || !!emailError}
-      />
+        className="w-full mt-8 bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 rounded-xl font-semibold text-base transition-all hover:shadow-sm cursor-pointer hover:shadow-blue-600/20  active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 flex items-center justify-center gap-2"
+      >
+        {loading ? (
+          "Loading..."
+        ) : (
+          <>
+            {isForgotPassword
+              ? "Send Reset Link"
+              : isSignUp
+              ? "Create Account"
+              : "Sign In"}
+            <ArrowRight className="w-5 h-5" />
+          </>
+        )}
+      </button>
 
+      {/* Divider & Social Login */}
       {!isForgotPassword && (
-        <div className="mt-6">
-          <div className="relative">
+        <>
+          <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
+              <div className="w-full border-t-2 border-slate-200" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">
+              <span className="px-4 bg-white text-slate-500 font-medium">
                 Or continue with
               </span>
             </div>
           </div>
 
-          <div className="mt-6">
-            <button
-              type="button"
-              className="w-full cursor-pointer inline-flex justify-center items-center py-2 px-4 rounded-md shadow-sm bg-white text-sm sm:text-base font-medium text-gray-700 hover:bg-gray-50 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-              onClick={handleGoogleSignIn}
-              disabled={loading}
-            >
-              <img
-                src="https://www.google.com/favicon.ico"
-                alt="Google"
-                className="h-5 w-5 mr-2"
-              />
-              Google
-            </button>
-          </div>
-        </div>
+          <button
+            type="button"
+            className="w-full inline-flex justify-center items-center py-3.5 px-4 rounded-xl shadow-sm bg-white text-base font-semibold cursor-pointer text-slate-700 hover:bg-slate-50 border-2 border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handleGoogleSignIn}
+            disabled={loading}
+          >
+            <img
+              src="https://www.google.com/favicon.ico"
+              alt="Google"
+              className="h-5 w-5 mr-3"
+            />
+            Continue with Google
+          </button>
+        </>
       )}
 
-      <div>
-        <p className="text-center mt-4 text-sm sm:text-base">
+      {/* Toggle Form */}
+      <div className="mt-6 text-center">
+        <p className="text-sm sm:text-base text-slate-600">
           {isForgotPassword
             ? "Back to sign in?"
             : isSignUp
@@ -446,7 +454,7 @@ const Form = () => {
             : "Don't have an account?"}{" "}
           <button
             type="button"
-            className="text-blue-600 transition hover:underline"
+            className="text-blue-600 font-semibold cursor-pointer hover:underline transition"
             onClick={isForgotPassword ? toggleForgotPassword : toggleForm}
             disabled={loading}
           >
