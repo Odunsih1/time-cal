@@ -51,6 +51,9 @@ export default function BookingPage() {
   const [loading, setLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const handleContextMenu = (e) => {
+    e.preventDefault();
+  };
 
   useEffect(() => {
     async function fetchUser() {
@@ -158,7 +161,10 @@ export default function BookingPage() {
 
   if (isFetching) {
     return (
-      <main className="container mx-auto p-4 md:p-6">
+      <main
+        onContextMenu={handleContextMenu}
+        className="container mx-auto p-4 md:p-6"
+      >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
@@ -188,7 +194,10 @@ export default function BookingPage() {
 
   if (!user) {
     return (
-      <main className="container mx-auto p-4 md:p-6 flex items-center justify-center h-[60vh]">
+      <main
+        onContextMenu={handleContextMenu}
+        className="container mx-auto p-4 md:p-6 flex items-center justify-center h-[60vh]"
+      >
         <Card className="text-center p-6">
           <h2 className="text-xl font-semibold">User not found</h2>
           <p className="text-gray-600 mt-2">
@@ -206,7 +215,10 @@ export default function BookingPage() {
   }
 
   return (
-    <main className="container mx-auto p-4 md:p-6">
+    <main
+      onContextMenu={handleContextMenu}
+      className="container mx-auto p-4 md:p-6"
+    >
       <Toaster position="top-center" />
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Book a Session</h1>
 
