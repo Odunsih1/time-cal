@@ -4,10 +4,16 @@ import React from "react";
 import TabSection from "@/components/ui/TabSection";
 
 const ProfilePage = () => {
+  const handleContextMenu = (e) => {
+    e.preventDefault();
+  };
   return (
     <>
       <Header />
-      <main className="bg-gray-100 min-h-screen pt-20">
+      <main
+        onContextMenu={handleContextMenu}
+        className="bg-gray-100 min-h-screen pt-20"
+      >
         {/* <Toaster position="top-right" reverseOrder={false} /> */}
         <div className="bg-white border border-gray-200 rounded-lg lg:w-[700px] m-auto w-[95%] p-10">
           <div>
