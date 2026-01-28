@@ -5,8 +5,14 @@ import toast, { Toaster } from "react-hot-toast";
 import Form from "@/components/ui/Form";
 
 const Page = () => {
+  const handleContextMenu = (e) => {
+    e.preventDefault();
+  };
   return (
-    <main className="min-h-screen bg-blue-50 flex justify-center items-center p-4 sm:p-6">
+    <main
+      onContextMenu={handleContextMenu}
+      className="min-h-screen bg-blue-50 flex justify-center items-center p-4 sm:p-6"
+    >
       <Toaster position="top-right" reverseOrder={false} />
       <Form />
     </main>

@@ -17,6 +17,10 @@ const ResetPasswordPage = () => {
   const router = useRouter();
   const { token } = useParams();
 
+  const handleContextMenu = (e) => {
+    e.preventDefault();
+  };
+
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
@@ -63,7 +67,10 @@ const ResetPasswordPage = () => {
   };
 
   return (
-    <main className="min-h-screen bg-blue-50 flex justify-center items-center p-4 sm:p-6">
+    <main
+      onContextMenu={handleContextMenu}
+      className="min-h-screen bg-blue-50 flex justify-center items-center p-4 sm:p-6"
+    >
       <Toaster position="top-right" reverseOrder={false} />
       <form
         onSubmit={handleSubmit}
