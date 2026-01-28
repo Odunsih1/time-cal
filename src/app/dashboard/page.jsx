@@ -31,6 +31,10 @@ const Dashboard = () => {
   const [isGoogleConnected, setIsGoogleConnected] = useState(false);
   const router = useRouter();
 
+  const handleContextMenu = (e) => {
+    e.preventDefault();
+  };
+
   useEffect(() => {
     const fetchData = async (currentUser) => {
       try {
@@ -98,7 +102,10 @@ const Dashboard = () => {
         <VerificationHandler />
       </Suspense>
       <Header />
-      <main className="bg-gray-100 min-h-screen p-2 pt-20">
+      <main
+        onContextMenu={handleContextMenu}
+        className="bg-gray-100 min-h-screen p-2 pt-20"
+      >
         {user && !user.isEmailVerified && (
           <ResendEmailLink onClick={handleResendVerification} />
         )}
