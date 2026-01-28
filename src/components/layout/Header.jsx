@@ -14,6 +14,10 @@ const Header = () => {
   const router = useRouter();
   const pathname = usePathname();
 
+  const handleContextMenu = (e) => {
+    e.preventDefault();
+  };
+
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       setIsAuthenticated(!!user);
@@ -51,7 +55,10 @@ const Header = () => {
 
   return (
     <>
-      <nav className="bg-white border-b-2 border-slate-200 fixed w-full z-50 shadow-sm">
+      <nav
+        onContextMenu={handleContextMenu}
+        className="bg-white border-b-2 border-slate-200 fixed w-full z-50 shadow-sm"
+      >
         <Toaster position="top-center" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
