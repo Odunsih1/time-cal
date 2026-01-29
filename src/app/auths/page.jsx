@@ -1,22 +1,11 @@
-"use client";
+import Auth from "@/components/pages/Auth";
 
-import React from "react";
-import toast, { Toaster } from "react-hot-toast";
-import Form from "@/components/ui/Form";
-
-const Page = () => {
-  const handleContextMenu = (e) => {
-    e.preventDefault();
-  };
+const page = () => {
   return (
-    <main
-      onContextMenu={handleContextMenu}
-      className="min-h-screen bg-blue-50 flex justify-center items-center p-4 sm:p-6"
-    >
-      <Toaster position="top-right" reverseOrder={false} />
-      <Form />
-    </main>
+    <div>
+      <Auth />
+    </div>
   );
 };
 
-export default Page;
+export default page;

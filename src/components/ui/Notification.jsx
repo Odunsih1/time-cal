@@ -18,8 +18,6 @@ import {
 } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { addDays } from "date-fns";
 import { auth } from "@/lib/firebaseConfig";
 
 const Notification = () => {
@@ -37,6 +35,7 @@ const Notification = () => {
   const [isGoogleConnected, setIsGoogleConnected] = useState(false);
   const [copied, setCopied] = useState(false);
   const router = useRouter();
+  const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
   useEffect(() => {
     const fetchData = async (currentUser) => {
@@ -50,8 +49,7 @@ const Notification = () => {
         setUser(userData);
         setNotifications(userData.notifications || notifications);
         setBookingLink(
-          userData.bookingLink ||
-            `https://time-cal.vercel.app/book/${userData._id}`
+          userData.bookingLink || `${BASE_URL}/book/${userData._id}`
         );
         setCustomTimes(
           userData.availability?.reduce((acc, slot) => {
