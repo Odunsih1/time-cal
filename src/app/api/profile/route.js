@@ -42,6 +42,7 @@ export async function GET(request) {
         emailSettings: user.emailSettings,
         googleTokens: user.googleTokens,
         bookingLink: user.bookingLink,
+        username: user.username,
       },
     });
   } catch (error) {

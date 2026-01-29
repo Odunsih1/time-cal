@@ -17,6 +17,7 @@ import {
   Trash2,
   Save,
   Check,
+  Link,
 } from "lucide-react";
 import TimeSelector from "@/components/ui/TimeSelector";
 import TimezoneSelector from "@/components/ui/TimezoneSelector";
@@ -27,6 +28,7 @@ const TabSection = () => {
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
+    username: "",
     title: "",
     location: "",
     timezone: "UTC",
@@ -58,6 +60,7 @@ const TabSection = () => {
         setFormData({
           fullName: userData.fullName || "",
           email: userData.email || "",
+          username: userData.username || "",
           title: userData.title || "",
           location: userData.location || "",
           timezone: userData.timezone || "UTC",
@@ -139,6 +142,7 @@ const TabSection = () => {
       const idToken = await auth.currentUser.getIdToken();
       const payload = {
         fullName: formData.fullName,
+        username: formData.username,
         title: formData.title,
         location: formData.location,
         timezone: formData.timezone,
@@ -403,19 +407,42 @@ const TabSection = () => {
                           </div>
                         </div>
 
-                        <div>
-                          <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
-                            <DollarSign className="w-4 h-4" />
-                            Hourly Rate ($)
-                          </label>
-                          <input
-                            className="w-full p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
-                            placeholder="50"
-                            type="number"
-                            name="hourlyRate"
-                            value={formData.hourlyRate}
-                            onChange={handleInputChange}
-                          />
+                        <div className="grid md:grid-cols-2 gap-6">
+                          <div>
+                            <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
+                              <Link className="w-4 h-4" />
+                              Booking Link ID
+                            </label>
+                            <input
+                              className="w-full p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+                              placeholder="username"
+                              type="text"
+                              name="username"
+                              value={formData.username}
+                              onChange={handleInputChange}
+                            />
+                            <p className="text-xs text-slate-500 mt-2 ml-1">
+                              time-cal.vercel.app/book/
+                              <span className="font-medium text-slate-700">
+                                {formData.username || user?._id}
+                              </span>
+                            </p>
+                          </div>
+
+                          <div>
+                            <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
+                              <DollarSign className="w-4 h-4" />
+                              Hourly Rate ($)
+                            </label>
+                            <input
+                              className="w-full p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+                              placeholder="50"
+                              type="number"
+                              name="hourlyRate"
+                              value={formData.hourlyRate}
+                              onChange={handleInputChange}
+                            />
+                          </div>
                         </div>
 
                         <div>

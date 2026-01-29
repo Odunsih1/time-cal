@@ -70,6 +70,7 @@ export async function POST(request) {
       availability,
       customAvailability,
       notifications,
+      username,
     } = await request.json();
     // console.log("Updating profile for user:", userId, {
     //   fullName,
@@ -81,6 +82,7 @@ export async function POST(request) {
     //   availability,
     //   customAvailability,
     //   notifications,
+    //   username
     // });
 
     await connectMongoDB();
@@ -95,6 +97,19 @@ export async function POST(request) {
     if (profilePicUrl) updateData.profilePicUrl = profilePicUrl;
     if (notifications) {
       updateData.notifications = notifications;
+    }
+
+    if (username) {
+      // Check if username is already taken by another user
+      const existingUser = await User.findOne({ username });
+      if (existingUser && existingUser._id.toString() !== userId) {
+        return NextResponse.json(
+          { error: "Username is already taken" },
+          { status: 400 }
+        );
+      }
+      updateData.username = username;
+      updateData.bookingLink = `https://time-cal.vercel.app/book/${username}`;
     }
     if (availability) {
       if (!Array.isArray(availability)) {

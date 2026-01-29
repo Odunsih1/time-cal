@@ -62,6 +62,7 @@ const userSchema = new mongoose.Schema(
     emailSettings: emailSettingsSchema,
     googleTokens: { type: Object, default: null },
     bookingLink: { type: String, default: "" },
+    username: { type: String, unique: true, sparse: true },
     lastGoogleSync: { type: String },
     resetPasswordToken: { type: String, default: "" },
     resetPasswordExpiry: { type: Number, default: null },
@@ -72,14 +73,13 @@ const userSchema = new mongoose.Schema(
 
 // Generate booking link on save if not set
 userSchema.pre("save", function (next) {
-  if (!this.bookingLink) {
-    this.bookingLink = `https://time-cal.vercel.app/book/${this._id}`;
-  }
+  const identifier = this.username || this._id;
+  this.bookingLink = `https://time-cal.vercel.app/book/${identifier}`;
   next();
 });
 
-// Check if model exists and has the timezone field; if not, delete it to force re-compilation
-if (mongoose.models.User && !mongoose.models.User.schema.paths.timezone) {
+// Check if model exists and has the username field; if not, delete it to force re-compilation
+if (mongoose.models.User && !mongoose.models.User.schema.paths.username) {
   delete mongoose.models.User;
 }
 
