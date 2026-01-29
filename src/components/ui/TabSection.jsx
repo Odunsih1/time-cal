@@ -18,6 +18,7 @@ import {
   Save,
   Check,
 } from "lucide-react";
+import TimeSelector from "@/components/ui/TimeSelector";
 
 const TabSection = () => {
   const [user, setUser] = useState(null);
@@ -233,13 +234,6 @@ const TabSection = () => {
       availability: prev.availability.filter((_, i) => i !== index),
     }));
   };
-
-  const timeOptions = [];
-  for (let i = 0; i < 24; i++) {
-    const hour = i.toString().padStart(2, "0");
-    timeOptions.push(`${hour}:00`);
-    timeOptions.push(`${hour}:30`);
-  }
 
   const tabVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -493,41 +487,19 @@ const TabSection = () => {
                               ))}
                             </select>
 
-                            <select
+                            <TimeSelector
                               value={slot.startTime}
-                              onChange={(e) =>
-                                updateAvailability(
-                                  index,
-                                  "startTime",
-                                  e.target.value
-                                )
+                              onChange={(value) =>
+                                updateAvailability(index, "startTime", value)
                               }
-                              className="p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
-                            >
-                              {timeOptions.map((time) => (
-                                <option key={time} value={time}>
-                                  {time}
-                                </option>
-                              ))}
-                            </select>
+                            />
 
-                            <select
+                            <TimeSelector
                               value={slot.endTime}
-                              onChange={(e) =>
-                                updateAvailability(
-                                  index,
-                                  "endTime",
-                                  e.target.value
-                                )
+                              onChange={(value) =>
+                                updateAvailability(index, "endTime", value)
                               }
-                              className="p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
-                            >
-                              {timeOptions.map((time) => (
-                                <option key={time} value={time}>
-                                  {time}
-                                </option>
-                              ))}
-                            </select>
+                            />
                           </div>
 
                           <button

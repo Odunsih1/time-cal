@@ -21,6 +21,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import TimeSelector from "@/components/ui/TimeSelector";
 
 const UserCalendar = () => {
   const [user, setUser] = useState(null);
@@ -170,13 +171,6 @@ const UserCalendar = () => {
     }
   };
 
-  const timeOptions = [];
-  for (let i = 0; i < 24; i++) {
-    const hour = i.toString().padStart(2, "0");
-    timeOptions.push(`${hour}:00`);
-    timeOptions.push(`${hour}:30`);
-  }
-
   const today = new Date();
   const maxDate = addDays(today, 5);
 
@@ -291,22 +285,13 @@ const UserCalendar = () => {
                       <label className="text-sm font-medium text-slate-700 mb-2 block">
                         Start Time
                       </label>
-                      <select
+                      <TimeSelector
                         value={
                           customTimes[format(selectedDate, "yyyy-MM-dd")]
                             ?.start || "00:00"
                         }
-                        onChange={(e) =>
-                          handleTimeChange("start", e.target.value)
-                        }
-                        className="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors outline-none"
-                      >
-                        {timeOptions.map((time) => (
-                          <option key={time} value={time}>
-                            {time}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(value) => handleTimeChange("start", value)}
+                      />
                     </div>
 
                     <div className="hidden sm:flex items-center pt-6">
@@ -317,22 +302,13 @@ const UserCalendar = () => {
                       <label className="text-sm font-medium text-slate-700 mb-2 block">
                         End Time
                       </label>
-                      <select
+                      <TimeSelector
                         value={
                           customTimes[format(selectedDate, "yyyy-MM-dd")]
                             ?.end || "00:00"
                         }
-                        onChange={(e) =>
-                          handleTimeChange("end", e.target.value)
-                        }
-                        className="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors outline-none"
-                      >
-                        {timeOptions.map((time) => (
-                          <option key={time} value={time}>
-                            {time}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(value) => handleTimeChange("end", value)}
+                      />
                     </div>
                   </div>
 
