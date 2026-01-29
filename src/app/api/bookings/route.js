@@ -4,6 +4,8 @@ import Booking from "@/models/Booking";
 import User from "@/models/User"; // Ensure User model is imported
 import { adminAuth } from "@/lib/firebaseAdmin";
 import nodemailer from "nodemailer";
+import { generateEmailTemplate } from "@/lib/emailTemplate";
+import mongoose from "mongoose";
 
 export async function GET(request) {
   try {
@@ -90,16 +92,26 @@ export async function POST(request) {
     await connectMongoDB();
     // console.log("MongoDB connected");
 
-    // Validate userId exists in User collection
-    const user = await User.findOne({ _id: userId });
+    // Validate userId exists in User collection (check both _id and username)
+    let user = null;
+    if (mongoose.Types.ObjectId.isValid(userId)) {
+      user = await User.findOne({ _id: userId });
+    }
     if (!user) {
-      console.error("User not found for ID:", userId);
+      user = await User.findOne({ username: userId });
+    }
+
+    if (!user) {
+      console.error("User not found for ID/Username:", userId);
       return NextResponse.json({ error: "Invalid user ID" }, { status: 404 });
     }
 
+    // Ensure we use the actual MongoDB _id for the booking record
+    const resolvedUserId = user._id.toString();
+
     // Validate time slot availability (simplified for public access)
     const existingBooking = await Booking.findOne({
-      userId,
+      userId: resolvedUserId,
       date,
       startTime,
       endTime,
@@ -146,7 +158,7 @@ export async function POST(request) {
 
     // Create new booking
     const booking = new Booking({
-      userId,
+      userId: resolvedUserId,
       clientName,
       clientEmail,
       clientMessage: clientMessage || "",
@@ -170,21 +182,25 @@ export async function POST(request) {
     const bookingConfirmationMessage =
       user.notifications?.bookingConfirmationMessage ||
       "Thank you for your booking!";
+
+    const htmlContent = generateEmailTemplate({
+      title: "Booking Confirmation",
+      body: `<p>${bookingConfirmationMessage}</p><p>We'll confirm your booking soon.</p>`,
+      details: [
+        { label: "Client", value: clientName },
+        { label: "Date", value: date },
+        { label: "Time", value: `${startTime} - ${endTime}` },
+        { label: "Message", value: clientMessage || "None" },
+      ],
+      ctaLink: `${process.env.NEXTAUTH_URL}/dashboard`,
+      ctaText: "View Dashboard",
+    });
+
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: [clientEmail, user.email],
       subject: `Booking Confirmation with ${user.fullName}`,
-      text: `
-        ${bookingConfirmationMessage}
-        
-        Booking Details:
-        - Client: ${clientName}
-        - Date: ${date}
-        - Time: ${startTime} - ${endTime}
-        - Message: ${clientMessage || "None"}
-        
-        We'll confirm your booking soon.
-      `,
+      html: htmlContent,
     };
 
     await transporter.sendMail(mailOptions);

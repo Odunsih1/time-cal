@@ -26,6 +26,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
+import { motion, AnimatePresence } from "framer-motion";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
 const localizer = dateFnsLocalizer({
@@ -51,6 +52,8 @@ export default function BookingPage() {
   const [loading, setLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [direction, setDirection] = useState(0);
+
   const handleContextMenu = (e) => {
     e.preventDefault();
   };
@@ -139,7 +142,23 @@ export default function BookingPage() {
     : [];
 
   const handleNavigate = (newDate) => {
+    setDirection(newDate > currentDate ? 1 : -1);
     setCurrentDate(newDate);
+  };
+
+  const variants = {
+    enter: (direction) => ({
+      x: direction > 0 ? 300 : -300,
+      opacity: 0,
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+    },
+    exit: (direction) => ({
+      x: direction > 0 ? -300 : 300,
+      opacity: 0,
+    }),
   };
 
   const handleConfirmBooking = async () => {
@@ -231,6 +250,25 @@ export default function BookingPage() {
       </main>
     );
   }
+
+  const CustomToolbar = ({ date, onNavigate }) => (
+    <div className="flex justify-between items-center mb-4 p-2">
+      <div className="flex gap-2">
+        <Button variant="outline" size="sm" onClick={() => onNavigate("PREV")}>
+          Back
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => onNavigate("TODAY")}>
+          Today
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => onNavigate("NEXT")}>
+          Next
+        </Button>
+      </div>
+      <span className="text-lg font-semibold text-slate-700">
+        {format(date, "MMMM yyyy")}
+      </span>
+    </div>
+  );
 
   return (
     <main
@@ -368,25 +406,50 @@ export default function BookingPage() {
               Choose a date and time that works for you
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-6 overflow-hidden">
             <div className="mb-6">
-              <Calendar
-                localizer={localizer}
-                events={[]}
-                startAccessor="start"
-                endAccessor="end"
-                style={{ height: 400 }}
-                onSelectSlot={handleSelectDate}
-                selectable
-                views={["month"]}
-                defaultView="month"
-                min={new Date()}
+              <CustomToolbar
                 date={currentDate}
-                onNavigate={handleNavigate}
-                longPressThreshold={50}
-                onSelectEvent={() => {}}
-                dayPropGetter={dayPropGetter}
+                onNavigate={(action) => {
+                  let newDate = new Date(currentDate);
+                  if (action === "PREV")
+                    newDate.setMonth(newDate.getMonth() - 1);
+                  if (action === "NEXT")
+                    newDate.setMonth(newDate.getMonth() + 1);
+                  if (action === "TODAY") newDate = new Date();
+                  handleNavigate(newDate);
+                }}
               />
+              <AnimatePresence mode="wait" custom={direction}>
+                <motion.div
+                  key={currentDate.toString()}
+                  custom={direction}
+                  variants={variants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={{ type: "tween", duration: 0.3 }}
+                >
+                  <Calendar
+                    localizer={localizer}
+                    events={[]}
+                    startAccessor="start"
+                    endAccessor="end"
+                    style={{ height: 400 }}
+                    onSelectSlot={handleSelectDate}
+                    selectable
+                    views={["month"]}
+                    defaultView="month"
+                    min={new Date()}
+                    date={currentDate}
+                    onNavigate={handleNavigate}
+                    toolbar={false}
+                    longPressThreshold={50}
+                    onSelectEvent={() => {}}
+                    dayPropGetter={dayPropGetter}
+                  />
+                </motion.div>
+              </AnimatePresence>
             </div>
 
             {selectedDate && (

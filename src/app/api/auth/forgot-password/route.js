@@ -4,6 +4,7 @@ import { connectMongoDB } from "@/lib/mongoose";
 import User from "@/models/User";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
+import { generateEmailTemplate } from "@/lib/emailTemplate";
 
 export async function POST(req) {
   try {
@@ -51,18 +52,22 @@ export async function POST(req) {
     });
 
     // Send email
+    const htmlContent = generateEmailTemplate({
+      title: "Reset Your Password",
+      body: `
+        <p>You requested a password reset. Click the button below to set a new password.</p>
+        <p>This link will expire in 1 hour.</p>
+        <p style="font-size: 14px; color: #64748b;">If you didn't request this, please ignore this email.</p>
+      `,
+      ctaLink: resetLink,
+      ctaText: "Reset Password",
+    });
+
     await transporter.sendMail({
       from: process.env.EMAIL_FROM,
       to: email,
       subject: "Time-Cal Password Reset",
-      html: `
-        <h2>Reset Your Time-Cal Password</h2>
-        <p>You requested a password reset. Click the link below to set a new password:</p>
-        <a href="${resetLink}" style="color: #2563eb; text-decoration: underline;">Reset Password</a>
-        <p>This link will expire in 1 hour.</p>
-        <p>If you didn't request this, please ignore this email.</p>
-        <p>Best regards,<br/>Time-Cal Team</p>
-      `,
+      html: htmlContent,
     });
 
     console.log(

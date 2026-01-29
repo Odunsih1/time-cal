@@ -4,6 +4,7 @@ import Booking from "@/models/Booking";
 import User from "@/models/User";
 import { adminAuth } from "@/lib/firebaseAdmin"; // Assuming you have a firebaseAdmin setup for server-side auth
 import nodemailer from "nodemailer";
+import { generateEmailTemplate } from "@/lib/emailTemplate";
 
 export async function POST(request) {
   try {
@@ -80,19 +81,23 @@ export async function POST(request) {
         status === "completed"
           ? "Your booking has been marked as completed."
           : "Your booking has been cancelled.";
+
+      const htmlContent = generateEmailTemplate({
+        title: "Booking Status Update",
+        body: `<p>${statusMessage}</p>`,
+        details: [
+          { label: "Client", value: booking.clientName },
+          { label: "Date", value: booking.date },
+          { label: "Time", value: `${booking.startTime} - ${booking.endTime}` },
+          { label: "Message", value: booking.clientMessage || "None" },
+        ],
+      });
+
       const mailOptions = {
         from: process.env.EMAIL_USER,
         to: [booking.clientEmail, user.email],
         subject: `Booking Status Update with ${user.fullName}`,
-        text: `
-          ${statusMessage}
-          
-          Booking Details:
-          - Client: ${booking.clientName}
-          - Date: ${booking.date}
-          - Time: ${booking.startTime} - ${booking.endTime}
-          - Message: ${booking.clientMessage || "None"}
-        `,
+        html: htmlContent,
       };
 
       await transporter.sendMail(mailOptions);
