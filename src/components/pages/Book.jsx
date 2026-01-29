@@ -72,8 +72,26 @@ export default function BookingPage() {
   }, [userId, router]);
 
   const handleSelectDate = ({ start }) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (start < today) return;
+
     setSelectedDate(start);
     setSelectedSlot(null);
+  };
+
+  const dayPropGetter = (date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (date < today) {
+      return {
+        className: "bg-slate-50 text-slate-300 cursor-not-allowed",
+        style: {
+          pointerEvents: "none",
+        },
+      };
+    }
+    return {};
   };
 
   const handleSelectSlot = (slot) => {
@@ -367,6 +385,7 @@ export default function BookingPage() {
                 onNavigate={handleNavigate}
                 longPressThreshold={50}
                 onSelectEvent={() => {}}
+                dayPropGetter={dayPropGetter}
               />
             </div>
 
