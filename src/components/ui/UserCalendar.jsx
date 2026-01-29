@@ -170,10 +170,12 @@ const UserCalendar = () => {
     }
   };
 
-  const timeOptions = Array.from(
-    { length: 24 },
-    (_, i) => `${i.toString().padStart(2, "0")}:00`
-  );
+  const timeOptions = [];
+  for (let i = 0; i < 24; i++) {
+    const hour = i.toString().padStart(2, "0");
+    timeOptions.push(`${hour}:00`);
+    timeOptions.push(`${hour}:30`);
+  }
 
   const today = new Date();
   const maxDate = addDays(today, 5);
