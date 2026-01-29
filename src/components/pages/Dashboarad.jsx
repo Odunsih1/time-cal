@@ -104,7 +104,7 @@ const Dashboard = () => {
       <Header />
       <main
         onContextMenu={handleContextMenu}
-        className="bg-gray-100 min-h-screen p-2 pt-20"
+        className="bg-gray-100 min-h-screen p-2 pt-10"
       >
         {user && !user.isEmailVerified && (
           <ResendEmailLink onClick={handleResendVerification} />
