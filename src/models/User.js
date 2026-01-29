@@ -1,4 +1,3 @@
-// src/models/User.js
 import mongoose from "mongoose";
 
 const availabilitySchema = new mongoose.Schema({
@@ -54,6 +53,7 @@ const userSchema = new mongoose.Schema(
     profilePicUrl: { type: String, default: "" },
     title: { type: String, default: "" },
     location: { type: String, default: "" },
+    timezone: { type: String, default: "UTC" },
     hourlyRate: { type: Number, default: 0 },
     about: { type: String, default: "" },
     availability: [availabilitySchema],
@@ -77,5 +77,10 @@ userSchema.pre("save", function (next) {
   }
   next();
 });
+
+// Check if model exists and has the timezone field; if not, delete it to force re-compilation
+if (mongoose.models.User && !mongoose.models.User.schema.paths.timezone) {
+  delete mongoose.models.User;
+}
 
 export default mongoose.models.User || mongoose.model("User", userSchema);

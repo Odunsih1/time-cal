@@ -301,6 +301,25 @@ export default function BookingPage() {
                     ${user.hourlyRate || "0"}/hr
                   </span>
                 </div>
+
+                <div className="flex items-center">
+                  <svg
+                    className="w-5 h-5 text-blue-600 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
+                    />
+                  </svg>
+                  <span className="text-gray-700">
+                    {user.timezone || "UTC"}
+                  </span>
+                </div>
               </div>
 
               {user.about && (
@@ -393,7 +412,7 @@ export default function BookingPage() {
 
       {/* Booking Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[500px] bg-white ">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold text-gray-800">
               Confirm Booking with {user.fullName}

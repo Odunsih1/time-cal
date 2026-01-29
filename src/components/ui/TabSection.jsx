@@ -19,6 +19,7 @@ import {
   Check,
 } from "lucide-react";
 import TimeSelector from "@/components/ui/TimeSelector";
+import TimezoneSelector from "@/components/ui/TimezoneSelector";
 
 const TabSection = () => {
   const [user, setUser] = useState(null);
@@ -28,6 +29,7 @@ const TabSection = () => {
     email: "",
     title: "",
     location: "",
+    timezone: "UTC",
     hourlyRate: 0,
     about: "",
     profilePicUrl: "",
@@ -58,6 +60,7 @@ const TabSection = () => {
           email: userData.email || "",
           title: userData.title || "",
           location: userData.location || "",
+          timezone: userData.timezone || "UTC",
           hourlyRate: userData.hourlyRate || 0,
           about: userData.about || "",
           profilePicUrl: userData.profilePicUrl || "",
@@ -138,6 +141,7 @@ const TabSection = () => {
         fullName: formData.fullName,
         title: formData.title,
         location: formData.location,
+        timezone: formData.timezone,
         hourlyRate: parseFloat(formData.hourlyRate),
         about: formData.about,
         profilePicUrl,
@@ -168,13 +172,17 @@ const TabSection = () => {
         }
       }
       const idToken = await auth.currentUser.getIdToken();
-      const payload = { availability: formData.availability };
+      const payload = {
+        availability: formData.availability,
+        timezone: formData.timezone,
+      };
       const response = await axios.post("/api/profile/update", payload, {
         headers: { Authorization: `Bearer ${idToken}` },
       });
       setUser((prev) => ({
         ...prev,
         availability: response.data.user?.availability || prev.availability,
+        timezone: response.data.user?.timezone || prev.timezone,
       }));
       toast.success("Availability updated successfully!");
     } catch (error) {
@@ -452,6 +460,18 @@ const TabSection = () => {
                         week
                       </p>
                     </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-semibold text-slate-700">
+                      Timezone
+                    </label>
+                    <TimezoneSelector
+                      value={formData.timezone}
+                      onChange={(value) =>
+                        setFormData((prev) => ({ ...prev, timezone: value }))
+                      }
+                    />
                   </div>
 
                   <div className="space-y-4">

@@ -33,6 +33,7 @@ export async function GET(request) {
         isEmailVerified: user.isEmailVerified,
         title: user.title,
         location: user.location,
+        timezone: user.timezone,
         hourlyRate: user.hourlyRate,
         about: user.about,
         availability: user.availability,

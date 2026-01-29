@@ -4,7 +4,7 @@ import User from "@/models/User";
 
 export async function GET(request, { params }) {
   try {
-    const { userId } = params;
+    const { userId } = await params;
     // console.log("Fetching user:", userId);
 
     await connectMongoDB();
@@ -23,6 +23,7 @@ export async function GET(request, { params }) {
         profilePicUrl: user.profilePicUrl,
         title: user.title,
         location: user.location,
+        timezone: user.timezone,
         hourlyRate: user.hourlyRate,
         about: user.about,
         availability: user.availability,

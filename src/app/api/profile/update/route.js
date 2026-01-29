@@ -32,6 +32,7 @@ export async function GET(request) {
         profilePicUrl: user.profilePicUrl,
         title: user.title,
         location: user.location,
+        timezone: user.timezone,
         hourlyRate: user.hourlyRate,
         about: user.about,
         availability: user.availability,
@@ -62,6 +63,7 @@ export async function POST(request) {
       fullName,
       title,
       location,
+      timezone,
       hourlyRate,
       about,
       profilePicUrl,
@@ -87,6 +89,7 @@ export async function POST(request) {
     if (fullName) updateData.fullName = fullName;
     if (title) updateData.title = title;
     if (location) updateData.location = location;
+    if (timezone) updateData.timezone = timezone;
     if (hourlyRate !== undefined) updateData.hourlyRate = hourlyRate;
     if (about) updateData.about = about;
     if (profilePicUrl) updateData.profilePicUrl = profilePicUrl;

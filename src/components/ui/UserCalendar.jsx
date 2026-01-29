@@ -257,7 +257,12 @@ const UserCalendar = () => {
                   </p>
                   <p className="text-blue-700">
                     Select a date below and set specific time slots when you're
-                    available for bookings
+                    available for bookings.
+                    {user?.timezone && (
+                      <span className="block mt-1 font-semibold">
+                        Current Timezone: {user.timezone}
+                      </span>
+                    )}
                   </p>
                 </div>
               </div>
