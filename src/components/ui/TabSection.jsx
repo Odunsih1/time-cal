@@ -586,15 +586,8 @@ const TabSection = () => {
                       ].map((notification) => (
                         <label
                           key={notification.name}
-                          className="flex items-start gap-4 bg-white border-2 border-slate-200 rounded-xl p-5 hover:shadow-md transition-all cursor-pointer group"
+                          className="flex items-center justify-between gap-4 bg-white border-2 border-slate-200 rounded-xl p-5 hover:shadow-md transition-all cursor-pointer group"
                         >
-                          <input
-                            type="checkbox"
-                            name={notification.name}
-                            checked={formData.notifications[notification.name]}
-                            onChange={handleNotificationChange}
-                            className="mt-1 w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-200 cursor-pointer"
-                          />
                           <div className="flex-1">
                             <p className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
                               {notification.label}
@@ -602,6 +595,18 @@ const TabSection = () => {
                             <p className="text-sm text-slate-600 mt-1">
                               {notification.description}
                             </p>
+                          </div>
+                          <div className="relative inline-flex items-center">
+                            <input
+                              type="checkbox"
+                              name={notification.name}
+                              checked={
+                                formData.notifications[notification.name]
+                              }
+                              onChange={handleNotificationChange}
+                              className="sr-only peer"
+                            />
+                            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                           </div>
                         </label>
                       ))}
