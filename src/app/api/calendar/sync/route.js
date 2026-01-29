@@ -46,68 +46,84 @@ export async function POST(req) {
 
     // Fetch Google Calendar events
     // console.log("Fetching Google Calendar events");
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
     const { data: googleEvents } = await calendar.events.list({
       calendarId: "primary",
-      timeMin: new Date().toISOString(),
+      timeMin: today.toISOString(),
       maxResults: 100,
       singleEvents: true,
       orderBy: "startTime",
     });
 
-    // Sync Google events to Time-Cal bookings
-    const bookings = googleEvents.items.map((event) => {
+    const googleEventIds = new Set();
+    const bulkOps = [];
+
+    // Process Google events
+    for (const event of googleEvents.items) {
       const startDate = event.start.dateTime || event.start.date;
-      // Derive clientName from attendees, creator, or summary
+      if (!startDate) continue;
+
+      googleEventIds.add(event.id);
+
+      // Derive client info
       const clientName =
         event.attendees?.find((a) => a.displayName)?.displayName ||
         event.attendees?.[0]?.displayName ||
         event.creator?.displayName ||
         event.summary ||
         "Google Event";
-      // Derive clientEmail from attendees or user email
+        
       const clientEmail =
         event.attendees?.find((a) => a.email && a.email !== user.email)
           ?.email ||
         event.creator?.email ||
         user.email ||
         "no-email@google-event.com";
-      return {
-        userId,
-        date: startDate
-          ? format(new Date(startDate), "yyyy-MM-dd")
-          : format(new Date(), "yyyy-MM-dd"),
-        startTime: event.start.dateTime || event.start.date,
-        endTime: event.end.dateTime || event.end.date,
-        clientName,
-        clientEmail,
-        clientMessage: event.description || "",
-        status: "upcoming",
-        title: event.summary || "Untitled Event",
-        googleEventId: event.id,
-      };
-    });
 
-    // Update MongoDB bookings
-    // console.log("Deleting existing Google-synced bookings");
-    await Booking.deleteMany({ userId, googleEventId: { $exists: true } });
+      const bookingDate = format(new Date(startDate), "yyyy-MM-dd");
+      const startTime = event.start.dateTime || event.start.date;
+      const endTime = event.end.dateTime || event.end.date;
 
-    if (bookings.length > 0) {
-      // console.log(`Inserting ${bookings.length} new bookings`);
-      try {
-        await Booking.insertMany(bookings);
-      } catch (validationError) {
-        console.error("Booking insertion failed:", validationError);
-        return NextResponse.json(
-          {
-            error: "Failed to sync bookings due to validation error",
-            details: validationError.message,
+      bulkOps.push({
+        updateOne: {
+          filter: { userId, googleEventId: event.id },
+          update: {
+            $set: {
+              date: bookingDate,
+              startTime,
+              endTime,
+              clientName,
+              clientEmail,
+              clientMessage: event.description || "",
+              title: event.summary || "Untitled Event",
+            },
+            $setOnInsert: {
+              userId,
+              status: "upcoming",
+              googleEventId: event.id,
+            },
           },
-          { status: 400 }
-        );
-      }
-    } else {
-      // console.log("No Google events to sync");
+          upsert: true,
+        },
+      });
     }
+
+    // Execute bulk updates
+    if (bulkOps.length > 0) {
+      await Booking.bulkWrite(bulkOps);
+    }
+
+    // Delete only future bookings that are no longer in Google Calendar
+    // This preserves past history and completed stats
+    const todayStr = format(today, "yyyy-MM-dd");
+    await Booking.deleteMany({
+      userId,
+      googleEventId: { $exists: true },
+      date: { $gte: todayStr },
+      googleEventId: { $nin: Array.from(googleEventIds) },
+    });
 
     // Sync Time-Cal bookings to Google Calendar
     // console.log("Fetching Time-Cal bookings for Google sync");
@@ -168,7 +184,7 @@ export async function POST(req) {
     return NextResponse.json(
       {
         message: "Calendar synced successfully",
-        syncedBookings: bookings.length,
+        syncedBookings: bulkOps.length,
       },
       { status: 200 }
     );
