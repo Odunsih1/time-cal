@@ -118,7 +118,7 @@
     @apply bg-background text-foreground;
   }
 }
-
+*/
 .loader-container {
   display: flex;
   justify-content: center;
@@ -140,4 +140,4 @@
     opacity: 0.4;
     transform: scale(1.2);
   }
-} */
+}
