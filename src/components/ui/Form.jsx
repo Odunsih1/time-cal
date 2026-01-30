@@ -21,6 +21,8 @@ import {
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { useFormik } from "formik";
+import { z } from "zod";
 
 const Form = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -28,17 +30,144 @@ const Form = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [profilePic, setProfilePic] = useState(null);
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  });
-  const [emailError, setEmailError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  // Define Zod schemas
+  const signInSchema = z.object({
+    email: z
+      .string()
+      .min(1, "Email is required")
+      .email("Please enter a valid email address"),
+    password: z.string().min(1, "Password is required"),
+  });
+
+  const signUpSchema = z
+    .object({
+      fullName: z.string().min(1, "Full Name is required"),
+      email: z
+        .string()
+        .min(1, "Email is required")
+        .email("Please enter a valid email address"),
+      password: z.string().min(6, "Password must be at least 6 characters"),
+      confirmPassword: z.string().min(1, "Confirm Password is required"),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: "Passwords do not match",
+      path: ["confirmPassword"],
+    });
+
+  const forgotPasswordSchema = z.object({
+    email: z
+      .string()
+      .min(1, "Email is required")
+      .email("Please enter a valid email address"),
+  });
+
+  const validate = (values) => {
+    try {
+      if (isForgotPassword) {
+        forgotPasswordSchema.parse(values);
+      } else if (isSignUp) {
+        signUpSchema.parse(values);
+      } else {
+        signInSchema.parse(values);
+      }
+      return {};
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const fieldErrors = error.flatten().fieldErrors;
+        const errors = {};
+        Object.keys(fieldErrors).forEach((key) => {
+          if (fieldErrors[key]?.length > 0) {
+            errors[key] = fieldErrors[key][0];
+          }
+        });
+        return errors;
+      }
+      return {};
+    }
+  };
+
+  const formik = useFormik({
+    initialValues: {
+      fullName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+    validate,
+    validateOnChange: true,
+    validateOnBlur: true,
+    onSubmit: async (values) => {
+      if (loading) return;
+      setLoading(true);
+
+      try {
+        if (isForgotPassword) {
+          await axios.post("/api/auth/forgot-password", {
+            email: values.email,
+          });
+          toast.success("Password reset link sent to your email!");
+          setIsForgotPassword(false);
+          formik.resetForm();
+        } else if (isSignUp) {
+          const profilePicUrl = await uploadProfilePic();
+          const userCredential = await createUserWithEmailAndPassword(
+            auth,
+            values.email,
+            values.password
+          );
+          const idToken = await userCredential.user.getIdToken();
+
+          await sendEmailVerification(userCredential.user);
+
+          const response = await axios.post("/api/auth/signup", {
+            fullName: values.fullName,
+            email: values.email,
+            password: values.password,
+            profilePicUrl,
+          });
+          await setSessionCookie(idToken);
+          toast.success(
+            "Sign-up successful! Please check your email to verify your account."
+          );
+          router.push("/dashboard");
+        } else {
+          const userCredential = await signInWithEmailAndPassword(
+            auth,
+            values.email,
+            values.password
+          );
+          const idToken = await userCredential.user.getIdToken();
+          const response = await axios.post("/api/auth/signin", {
+            email: values.email,
+            idToken,
+          });
+          toast.success("Sign-in successful!");
+          router.push("/dashboard");
+        }
+      } catch (error) {
+        console.error(
+          "Authentication error:",
+          error.response?.data?.error || error.message,
+          error
+        );
+        toast.error(
+          error.response?.data?.error?.includes("Email already in use")
+            ? "Email already in use"
+            : error.response?.data?.error?.includes("Missing required fields")
+            ? "Please fill all required fields"
+            : error.response?.data?.error?.includes("User not found")
+            ? "No account found with this email"
+            : "Authentication failed: " +
+              (error.response?.data?.error || error.message)
+        );
+      } finally {
+        setLoading(false);
+      }
+    },
+  });
 
   useEffect(() => {
     window.addEventListener("popstate", () => {});
@@ -48,16 +177,14 @@ const Form = () => {
   const toggleForm = () => {
     setIsSignUp(!isSignUp);
     setIsForgotPassword(false);
-    setFormData({ fullName: "", email: "", password: "", confirmPassword: "" });
+    formik.resetForm();
     setProfilePic(null);
-    setEmailError("");
   };
 
   const toggleForgotPassword = () => {
     setIsForgotPassword(!isForgotPassword);
     setIsSignUp(false);
-    setFormData({ fullName: "", email: "", password: "", confirmPassword: "" });
-    setEmailError("");
+    formik.resetForm();
   };
 
   const togglePasswordVisibility = () => {
@@ -74,21 +201,6 @@ const Form = () => {
       setProfilePic(file);
     } else {
       setProfilePic(null);
-    }
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-
-    if (name === "email") {
-      if (!value) {
-        setEmailError("Email is required");
-      } else if (!emailRegex.test(value)) {
-        setEmailError("Please enter a valid email address");
-      } else {
-        setEmailError("");
-      }
     }
   };
 
@@ -118,93 +230,6 @@ const Form = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (loading || emailError) return;
-    setLoading(true);
-
-    try {
-      if (isForgotPassword) {
-        if (!formData.email) {
-          toast.error("Please enter your email");
-          return;
-        }
-        await axios.post("/api/auth/forgot-password", {
-          email: formData.email,
-        });
-        toast.success("Password reset link sent to your email!");
-        setIsForgotPassword(false);
-        setFormData({
-          fullName: "",
-          email: "",
-          password: "",
-          confirmPassword: "",
-        });
-      } else if (isSignUp) {
-        if (formData.password !== formData.confirmPassword) {
-          toast.error("Passwords do not match");
-          return;
-        }
-        if (!emailRegex.test(formData.email)) {
-          toast.error("Please enter a valid email address");
-          return;
-        }
-        const profilePicUrl = await uploadProfilePic();
-        const userCredential = await createUserWithEmailAndPassword(
-          auth,
-          formData.email,
-          formData.password
-        );
-        const idToken = await userCredential.user.getIdToken();
-
-        await sendEmailVerification(userCredential.user);
-
-        const response = await axios.post("/api/auth/signup", {
-          fullName: formData.fullName,
-          email: formData.email,
-          password: formData.password,
-          profilePicUrl,
-        });
-        await setSessionCookie(idToken);
-        toast.success(
-          "Sign-up successful! Please check your email to verify your account."
-        );
-        router.push("/dashboard");
-      } else {
-        const userCredential = await signInWithEmailAndPassword(
-          auth,
-          formData.email,
-          formData.password
-        );
-        const idToken = await userCredential.user.getIdToken();
-        const response = await axios.post("/api/auth/signin", {
-          email: formData.email,
-          idToken,
-        });
-        toast.success("Sign-in successful!");
-        router.push("/dashboard");
-      }
-    } catch (error) {
-      console.error(
-        "Authentication error:",
-        error.response?.data?.error || error.message,
-        error
-      );
-      toast.error(
-        error.response?.data?.error?.includes("Email already in use")
-          ? "Email already in use"
-          : error.response?.data?.error?.includes("Missing required fields")
-          ? "Please fill all required fields"
-          : error.response?.data?.error?.includes("User not found")
-          ? "No account found with this email"
-          : "Authentication failed: " +
-            (error.response?.data?.error || error.message)
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleGoogleSignIn = async () => {
     if (loading) return;
     setLoading(true);
@@ -229,7 +254,7 @@ const Form = () => {
 
   return (
     <form
-      onSubmit={handleSubmit}
+      onSubmit={formik.handleSubmit}
       className="bg-white py-8 px-6 sm:px-10 md:px-12 shadow-xl lg:shadow-none rounded-2xl border-2 lg:border-none border-slate-200 w-full max-w-lg sm:max-w-md hover:shadow-2xl lg:hover:shadow-none transition-shadow duration-300"
     >
       {/* Header */}
@@ -273,15 +298,25 @@ const Form = () => {
               Full Name
             </label>
             <input
-              className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors text-base"
+              className={`w-full p-3 bg-slate-50 border ${
+                formik.touched.fullName && formik.errors.fullName
+                  ? "border-red-500 ring-2 ring-red-200"
+                  : "border-slate-200"
+              } rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors text-base`}
               placeholder="Henry Odunsi"
               type="text"
               id="name"
               name="fullName"
-              value={formData.fullName}
-              onChange={handleInputChange}
-              required
+              value={formik.values.fullName}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
             />
+            {formik.touched.fullName && formik.errors.fullName && (
+              <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+                <span className="w-1 h-1 bg-red-600 rounded-full"></span>
+                {formik.errors.fullName}
+              </p>
+            )}
           </div>
         )}
 
@@ -295,7 +330,7 @@ const Form = () => {
           </label>
           <input
             className={`w-full p-3 bg-slate-50 border ${
-              emailError
+              formik.touched.email && formik.errors.email
                 ? "border-red-500 ring-2 ring-red-200"
                 : "border-slate-200"
             } rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors text-base`}
@@ -303,14 +338,14 @@ const Form = () => {
             type="email"
             id="email"
             name="email"
-            value={formData.email}
-            onChange={handleInputChange}
-            required
+            value={formik.values.email}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
           />
-          {emailError && (
+          {formik.touched.email && formik.errors.email && (
             <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
               <span className="w-1 h-1 bg-red-600 rounded-full"></span>
-              {emailError}
+              {formik.errors.email}
             </p>
           )}
         </div>
@@ -337,13 +372,17 @@ const Form = () => {
             </label>
             <div className="relative">
               <input
-                className="w-full p-3 pr-12 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors text-base"
+                className={`w-full p-3 pr-12 bg-slate-50 border ${
+                  formik.touched.password && formik.errors.password
+                    ? "border-red-500 ring-2 ring-red-200"
+                    : "border-slate-200"
+                } rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors text-base`}
                 type={showPassword ? "text" : "password"}
                 id="password"
                 name="password"
-                value={formData.password}
-                onChange={handleInputChange}
-                required
+                value={formik.values.password}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
               />
               <button
                 type="button"
@@ -357,6 +396,12 @@ const Form = () => {
                 )}
               </button>
             </div>
+            {formik.touched.password && formik.errors.password && (
+              <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+                <span className="w-1 h-1 bg-red-600 rounded-full"></span>
+                {formik.errors.password}
+              </p>
+            )}
           </div>
         )}
 
@@ -371,13 +416,18 @@ const Form = () => {
             </label>
             <div className="relative">
               <input
-                className="w-full p-3 pr-12 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors text-base"
+                className={`w-full p-3 pr-12 bg-slate-50 border ${
+                  formik.touched.confirmPassword &&
+                  formik.errors.confirmPassword
+                    ? "border-red-500 ring-2 ring-red-200"
+                    : "border-slate-200"
+                } rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors text-base`}
                 type={showConfirmPassword ? "text" : "password"}
                 id="confirm-password"
                 name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                required
+                value={formik.values.confirmPassword}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
               />
               <button
                 type="button"
@@ -391,6 +441,13 @@ const Form = () => {
                 )}
               </button>
             </div>
+            {formik.touched.confirmPassword &&
+              formik.errors.confirmPassword && (
+                <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+                  <span className="w-1 h-1 bg-red-600 rounded-full"></span>
+                  {formik.errors.confirmPassword}
+                </p>
+              )}
           </div>
         )}
       </div>
@@ -398,7 +455,7 @@ const Form = () => {
       {/* Submit Button */}
       <button
         type="submit"
-        disabled={loading || !!emailError}
+        disabled={loading || !formik.isValid || (!formik.dirty && !loading)}
         className="w-full mt-8 bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 rounded-xl font-semibold text-base transition-all hover:shadow-sm cursor-pointer hover:shadow-blue-600/20  active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 flex items-center justify-center gap-2"
       >
         {loading ? (
