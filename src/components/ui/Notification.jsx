@@ -98,6 +98,10 @@ const Notification = () => {
   };
 
   const handleCopyLink = async () => {
+    if (!user?.isEmailVerified) {
+      toast.error("Please verify your email to copy the booking link");
+      return;
+    }
     try {
       await navigator.clipboard.writeText(bookingLink);
       setCopied(true);

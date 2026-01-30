@@ -11,6 +11,7 @@ import {
   Upload,
   MapPin,
   DollarSign,
+  AlertTriangle,
   Mail,
   Briefcase,
   Plus,
@@ -199,6 +200,10 @@ const TabSection = () => {
 
   const handleNotificationSubmit = async (e) => {
     e.preventDefault();
+    if (!user?.isEmailVerified) {
+      toast.error("Please verify your email to update notifications");
+      return;
+    }
     if (loading) return;
     setLoading(true);
     try {
@@ -291,6 +296,20 @@ const TabSection = () => {
 
         {/* Tab Content */}
         <div className="p-8">
+          {user && !user.isEmailVerified && (
+            <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-6 rounded-r-lg">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="h-5 w-5 text-amber-500" />
+                <p className="text-sm text-amber-700">
+                  Please{" "}
+                  <span className="font-semibold">
+                    verify your email address
+                  </span>{" "}
+                  to edit your profile.
+                </p>
+              </div>
+            </div>
+          )}
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
@@ -343,130 +362,135 @@ const TabSection = () => {
                         onSubmit={handleGeneralSubmit}
                         className="space-y-6"
                       >
-                        <div className="grid md:grid-cols-2 gap-6">
+                        <fieldset
+                          disabled={!user?.isEmailVerified}
+                          className="contents"
+                        >
+                          <div className="grid md:grid-cols-2 gap-6">
+                            <div>
+                              <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
+                                <User className="w-4 h-4" />
+                                Full Name
+                              </label>
+                              <input
+                                className="w-full p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+                                placeholder="Henry Odunsi"
+                                type="text"
+                                name="fullName"
+                                value={formData.fullName}
+                                onChange={handleInputChange}
+                                required
+                              />
+                            </div>
+
+                            <div>
+                              <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
+                                <Briefcase className="w-4 h-4" />
+                                Title
+                              </label>
+                              <input
+                                className="w-full p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+                                placeholder="Web Developer"
+                                type="text"
+                                name="title"
+                                value={formData.title}
+                                onChange={handleInputChange}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid md:grid-cols-2 gap-6">
+                            <div>
+                              <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
+                                <Mail className="w-4 h-4" />
+                                Email
+                              </label>
+                              <input
+                                className="w-full p-3 border-2 border-slate-200 rounded-xl bg-slate-50 text-slate-500"
+                                type="email"
+                                name="email"
+                                value={formData.email}
+                                readOnly
+                              />
+                            </div>
+
+                            <div>
+                              <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
+                                <MapPin className="w-4 h-4" />
+                                Location
+                              </label>
+                              <input
+                                className="w-full p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+                                placeholder="Lagos, Nigeria"
+                                type="text"
+                                name="location"
+                                value={formData.location}
+                                onChange={handleInputChange}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid md:grid-cols-2 gap-6">
+                            <div>
+                              <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
+                                <Link className="w-4 h-4" />
+                                Booking Link ID
+                              </label>
+                              <input
+                                className="w-full p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+                                placeholder="username"
+                                type="text"
+                                name="username"
+                                value={formData.username}
+                                onChange={handleInputChange}
+                              />
+                              <p className="text-xs text-slate-500 mt-2 ml-1">
+                                time-cal.vercel.app/book/
+                                <span className="font-medium text-slate-700">
+                                  {formData.username || user?._id}
+                                </span>
+                              </p>
+                            </div>
+
+                            <div>
+                              <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
+                                <DollarSign className="w-4 h-4" />
+                                Hourly Rate ($)
+                              </label>
+                              <input
+                                className="w-full p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+                                placeholder="50"
+                                type="number"
+                                name="hourlyRate"
+                                value={formData.hourlyRate}
+                                onChange={handleInputChange}
+                              />
+                            </div>
+                          </div>
+
                           <div>
                             <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
                               <User className="w-4 h-4" />
-                              Full Name
+                              About
                             </label>
-                            <input
-                              className="w-full p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
-                              placeholder="Henry Odunsi"
-                              type="text"
-                              name="fullName"
-                              value={formData.fullName}
-                              onChange={handleInputChange}
-                              required
-                            />
-                          </div>
-
-                          <div>
-                            <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
-                              <Briefcase className="w-4 h-4" />
-                              Title
-                            </label>
-                            <input
-                              className="w-full p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
-                              placeholder="Web Developer"
-                              type="text"
-                              name="title"
-                              value={formData.title}
+                            <textarea
+                              className="w-full p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors min-h-[120px]"
+                              placeholder="Tell us about yourself..."
+                              name="about"
+                              value={formData.about}
                               onChange={handleInputChange}
                             />
                           </div>
-                        </div>
 
-                        <div className="grid md:grid-cols-2 gap-6">
-                          <div>
-                            <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
-                              <Mail className="w-4 h-4" />
-                              Email
-                            </label>
-                            <input
-                              className="w-full p-3 border-2 border-slate-200 rounded-xl bg-slate-50 text-slate-500"
-                              type="email"
-                              name="email"
-                              value={formData.email}
-                              readOnly
-                            />
-                          </div>
-
-                          <div>
-                            <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
-                              <MapPin className="w-4 h-4" />
-                              Location
-                            </label>
-                            <input
-                              className="w-full p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
-                              placeholder="Lagos, Nigeria"
-                              type="text"
-                              name="location"
-                              value={formData.location}
-                              onChange={handleInputChange}
-                            />
-                          </div>
-                        </div>
-
-                        <div className="grid md:grid-cols-2 gap-6">
-                          <div>
-                            <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
-                              <Link className="w-4 h-4" />
-                              Booking Link ID
-                            </label>
-                            <input
-                              className="w-full p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
-                              placeholder="username"
-                              type="text"
-                              name="username"
-                              value={formData.username}
-                              onChange={handleInputChange}
-                            />
-                            <p className="text-xs text-slate-500 mt-2 ml-1">
-                              time-cal.vercel.app/book/
-                              <span className="font-medium text-slate-700">
-                                {formData.username || user?._id}
-                              </span>
-                            </p>
-                          </div>
-
-                          <div>
-                            <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
-                              <DollarSign className="w-4 h-4" />
-                              Hourly Rate ($)
-                            </label>
-                            <input
-                              className="w-full p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
-                              placeholder="50"
-                              type="number"
-                              name="hourlyRate"
-                              value={formData.hourlyRate}
-                              onChange={handleInputChange}
-                            />
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
-                            <User className="w-4 h-4" />
-                            About
-                          </label>
-                          <textarea
-                            className="w-full p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors min-h-[120px]"
-                            placeholder="Tell us about yourself..."
-                            name="about"
-                            value={formData.about}
-                            onChange={handleInputChange}
-                          />
-                        </div>
-
-                        <button
-                          type="submit"
-                          disabled={loading}
-                          className="w-full bg-blue-600 cursor-pointer hover:bg-blue-700 text-white px-6 py-4 rounded-xl font-semibold transition-all hover:shadow-sm hover:shadow-blue-600/20  active:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-                        >
-                          <Save className="w-5 h-5" />
-                          {loading ? "Saving..." : "Save Changes"}
-                        </button>
+                          <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full bg-blue-600 cursor-pointer hover:bg-blue-700 text-white px-6 py-4 rounded-xl font-semibold transition-all hover:shadow-sm hover:shadow-blue-600/20  active:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                          >
+                            <Save className="w-5 h-5" />
+                            {loading ? "Saving..." : "Save Changes"}
+                          </button>
+                        </fieldset>
                       </form>
                     </div>
                   </div>
@@ -476,214 +500,228 @@ const TabSection = () => {
               {/* Availability Tab */}
               {activeTab === "Availability" && (
                 <form onSubmit={handleAvailabilitySubmit} className="space-y-6">
-                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
-                    <Clock className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                    <div className="text-sm text-blue-800">
-                      <p className="font-medium mb-1">
-                        Set Your Weekly Schedule
-                      </p>
-                      <p className="text-blue-700">
-                        Define your regular availability for each day of the
-                        week
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-semibold text-slate-700">
-                      Timezone
-                    </label>
-                    <TimezoneSelector
-                      value={formData.timezone}
-                      onChange={(value) =>
-                        setFormData((prev) => ({ ...prev, timezone: value }))
-                      }
-                    />
-                  </div>
-
-                  <div className="space-y-4">
-                    {formData.availability.map((slot, index) => (
-                      <div
-                        key={index}
-                        className="bg-white border-2 border-slate-200 rounded-xl p-6 hover:shadow-md transition-all"
-                      >
-                        <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
-                          <div className="flex-1 grid md:grid-cols-3 gap-4 w-full">
-                            <select
-                              value={slot.day}
-                              onChange={(e) =>
-                                updateAvailability(index, "day", e.target.value)
-                              }
-                              className="p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
-                            >
-                              <option value="Not set" disabled>
-                                Select a day
-                              </option>
-                              {[
-                                "Monday",
-                                "Tuesday",
-                                "Wednesday",
-                                "Thursday",
-                                "Friday",
-                                "Saturday",
-                                "Sunday",
-                              ].map((day) => (
-                                <option key={day} value={day}>
-                                  {day}
-                                </option>
-                              ))}
-                            </select>
-
-                            <TimeSelector
-                              value={slot.startTime}
-                              onChange={(value) =>
-                                updateAvailability(index, "startTime", value)
-                              }
-                            />
-
-                            <TimeSelector
-                              value={slot.endTime}
-                              onChange={(value) =>
-                                updateAvailability(index, "endTime", value)
-                              }
-                            />
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={() => removeAvailability(index)}
-                            className="bg-red-50 hover:bg-red-100 text-red-600 border-2 cursor-pointer border-red-200 px-4 py-3 rounded-xl font-medium transition-all flex items-center gap-2"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                            Remove
-                          </button>
-                        </div>
+                  <fieldset
+                    disabled={!user?.isEmailVerified}
+                    className="contents"
+                  >
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
+                      <Clock className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                      <div className="text-sm text-blue-800">
+                        <p className="font-medium mb-1">
+                          Set Your Weekly Schedule
+                        </p>
+                        <p className="text-blue-700">
+                          Define your regular availability for each day of the
+                          week
+                        </p>
                       </div>
-                    ))}
-                  </div>
+                    </div>
 
-                  <button
-                    type="button"
-                    onClick={addAvailability}
-                    className="w-full border-2 border-dashed cursor-pointer border-slate-300 hover:border-blue-500 bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-600 px-6 py-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
-                  >
-                    <Plus className="w-5 h-5" />
-                    Add Availability Slot
-                  </button>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-semibold text-slate-700">
+                        Timezone
+                      </label>
+                      <TimezoneSelector
+                        value={formData.timezone}
+                        onChange={(value) =>
+                          setFormData((prev) => ({ ...prev, timezone: value }))
+                        }
+                      />
+                    </div>
 
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 rounded-xl cursor-pointer font-semibold transition-all hover:shadow-sm hover:shadow-blue-600/20  active:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-                  >
-                    <Save className="w-5 h-5" />
-                    {loading ? "Saving..." : "Save Availability"}
-                  </button>
+                    <div className="space-y-4">
+                      {formData.availability.map((slot, index) => (
+                        <div
+                          key={index}
+                          className="bg-white border-2 border-slate-200 rounded-xl p-6 hover:shadow-md transition-all"
+                        >
+                          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
+                            <div className="flex-1 grid md:grid-cols-3 gap-4 w-full">
+                              <select
+                                value={slot.day}
+                                onChange={(e) =>
+                                  updateAvailability(
+                                    index,
+                                    "day",
+                                    e.target.value
+                                  )
+                                }
+                                className="p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+                              >
+                                <option value="Not set" disabled>
+                                  Select a day
+                                </option>
+                                {[
+                                  "Monday",
+                                  "Tuesday",
+                                  "Wednesday",
+                                  "Thursday",
+                                  "Friday",
+                                  "Saturday",
+                                  "Sunday",
+                                ].map((day) => (
+                                  <option key={day} value={day}>
+                                    {day}
+                                  </option>
+                                ))}
+                              </select>
+
+                              <TimeSelector
+                                value={slot.startTime}
+                                onChange={(value) =>
+                                  updateAvailability(index, "startTime", value)
+                                }
+                              />
+
+                              <TimeSelector
+                                value={slot.endTime}
+                                onChange={(value) =>
+                                  updateAvailability(index, "endTime", value)
+                                }
+                              />
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => removeAvailability(index)}
+                              className="bg-red-50 hover:bg-red-100 text-red-600 border-2 cursor-pointer border-red-200 px-4 py-3 rounded-xl font-medium transition-all flex items-center gap-2"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={addAvailability}
+                      className="w-full border-2 border-dashed cursor-pointer border-slate-300 hover:border-blue-500 bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-600 px-6 py-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
+                    >
+                      <Plus className="w-5 h-5" />
+                      Add Availability Slot
+                    </button>
+
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 rounded-xl cursor-pointer font-semibold transition-all hover:shadow-sm hover:shadow-blue-600/20  active:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                    >
+                      <Save className="w-5 h-5" />
+                      {loading ? "Saving..." : "Save Availability"}
+                    </button>
+                  </fieldset>
                 </form>
               )}
 
               {/* Notification Tab */}
               {activeTab === "Notification" && (
                 <form onSubmit={handleNotificationSubmit} className="space-y-8">
-                  <div>
-                    <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                      <Bell className="w-5 h-5" />
-                      Email Notifications
-                    </h3>
-                    <div className="space-y-4">
-                      {[
-                        {
-                          name: "newBooking",
-                          label: "New booking notifications",
-                          description:
-                            "Get notified when someone books a meeting",
-                        },
-                        {
-                          name: "cancelledBooking",
-                          label: "Cancelled booking notifications",
-                          description:
-                            "Get notified when a booking is cancelled",
-                        },
-                        {
-                          name: "reminder",
-                          label: "Reminder emails",
-                          description:
-                            "Receive reminders 24 hours before bookings",
-                        },
-                      ].map((notification) => (
-                        <label
-                          key={notification.name}
-                          className="flex items-center justify-between gap-4 bg-white border-2 border-slate-200 rounded-xl p-5 hover:shadow-md transition-all cursor-pointer group"
-                        >
-                          <div className="flex-1">
-                            <p className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
-                              {notification.label}
-                            </p>
-                            <p className="text-sm text-slate-600 mt-1">
-                              {notification.description}
-                            </p>
-                          </div>
-                          <div className="relative inline-flex items-center">
-                            <input
-                              type="checkbox"
-                              name={notification.name}
-                              checked={
-                                formData.notifications[notification.name]
-                              }
-                              onChange={handleNotificationChange}
-                              className="sr-only peer"
-                            />
-                            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                          </div>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="border-t-2 border-slate-200 pt-8">
-                    <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                      <Mail className="w-5 h-5" />
-                      Client Communication
-                    </h3>
-                    <div className="space-y-6">
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">
-                          Booking Confirmation Message
-                        </label>
-                        <textarea
-                          className="w-full p-4 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors min-h-[100px]"
-                          placeholder="Thank you for your booking!"
-                          name="bookingConfirmationMessage"
-                          value={
-                            formData.notifications.bookingConfirmationMessage
-                          }
-                          onChange={handleMessageChange}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">
-                          Reminder Message
-                        </label>
-                        <textarea
-                          className="w-full p-4 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors min-h-[100px]"
-                          placeholder="Reminder: Your booking is tomorrow!"
-                          name="reminderMessage"
-                          value={formData.notifications.reminderMessage}
-                          onChange={handleMessageChange}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 rounded-xl cursor-pointer font-semibold transition-all hover:shadow-sm hover:shadow-blue-600/20  active:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                  <fieldset
+                    disabled={!user?.isEmailVerified}
+                    className="contents"
                   >
-                    <Save className="w-5 h-5" />
-                    {loading ? "Saving..." : "Save Notification Settings"}
-                  </button>
+                    <div>
+                      <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                        <Bell className="w-5 h-5" />
+                        Email Notifications
+                      </h3>
+                      <div className="space-y-4">
+                        {[
+                          {
+                            name: "newBooking",
+                            label: "New booking notifications",
+                            description:
+                              "Get notified when someone books a meeting",
+                          },
+                          {
+                            name: "cancelledBooking",
+                            label: "Cancelled booking notifications",
+                            description:
+                              "Get notified when a booking is cancelled",
+                          },
+                          {
+                            name: "reminder",
+                            label: "Reminder emails",
+                            description:
+                              "Receive reminders 24 hours before bookings",
+                          },
+                        ].map((notification) => (
+                          <label
+                            key={notification.name}
+                            className="flex items-center justify-between gap-4 bg-white border-2 border-slate-200 rounded-xl p-5 hover:shadow-md transition-all cursor-pointer group"
+                          >
+                            <div className="flex-1">
+                              <p className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
+                                {notification.label}
+                              </p>
+                              <p className="text-sm text-slate-600 mt-1">
+                                {notification.description}
+                              </p>
+                            </div>
+                            <div className="relative inline-flex items-center">
+                              <input
+                                type="checkbox"
+                                name={notification.name}
+                                checked={
+                                  formData.notifications[notification.name]
+                                }
+                                onChange={handleNotificationChange}
+                                className="sr-only peer"
+                              />
+                              <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="border-t-2 border-slate-200 pt-8">
+                      <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                        <Mail className="w-5 h-5" />
+                        Client Communication
+                      </h3>
+                      <div className="space-y-6">
+                        <div>
+                          <label className="block text-sm font-semibold text-slate-700 mb-2">
+                            Booking Confirmation Message
+                          </label>
+                          <textarea
+                            className="w-full p-4 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors min-h-[100px]"
+                            placeholder="Thank you for your booking!"
+                            name="bookingConfirmationMessage"
+                            value={
+                              formData.notifications.bookingConfirmationMessage
+                            }
+                            onChange={handleMessageChange}
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-semibold text-slate-700 mb-2">
+                            Reminder Message
+                          </label>
+                          <textarea
+                            className="w-full p-4 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors min-h-[100px]"
+                            placeholder="Reminder: Your booking is tomorrow!"
+                            name="reminderMessage"
+                            value={formData.notifications.reminderMessage}
+                            onChange={handleMessageChange}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 rounded-xl cursor-pointer font-semibold transition-all hover:shadow-sm hover:shadow-blue-600/20  active:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                    >
+                      <Save className="w-5 h-5" />
+                      {loading ? "Saving..." : "Save Notification Settings"}
+                    </button>
+                  </fieldset>
                 </form>
               )}
             </motion.div>

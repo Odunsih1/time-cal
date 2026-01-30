@@ -230,11 +230,12 @@ const Form = () => {
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white py-8 px-6 sm:px-10 md:px-12 shadow-xl rounded-2xl border-2 border-slate-200 w-full max-w-lg sm:max-w-md hover:shadow-2xl transition-shadow duration-300"
+      className="bg-white py-8 px-6 sm:px-10 md:px-12 shadow-xl lg:shadow-none rounded-2xl border-2 lg:border-none border-slate-200 w-full max-w-lg sm:max-w-md hover:shadow-2xl lg:hover:shadow-none transition-shadow duration-300"
     >
       {/* Header */}
       <div className="text-center flex flex-col gap-6 mb-8">
-        <div className="flex justify-center items-center gap-2">
+        {/* Logo - Hidden on Desktop since it's on the left panel */}
+        <div className="flex justify-center items-center gap-2 lg:hidden">
           <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
             <Calendar className="text-white h-7 w-7" />
           </div>
@@ -272,7 +273,7 @@ const Form = () => {
               Full Name
             </label>
             <input
-              className="w-full p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors text-base"
+              className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors text-base"
               placeholder="Henry Odunsi"
               type="text"
               id="name"
@@ -293,7 +294,7 @@ const Form = () => {
             Email
           </label>
           <input
-            className={`w-full p-3 border-2 ${
+            className={`w-full p-3 bg-slate-50 border ${
               emailError
                 ? "border-red-500 ring-2 ring-red-200"
                 : "border-slate-200"
@@ -336,7 +337,7 @@ const Form = () => {
             </label>
             <div className="relative">
               <input
-                className="w-full p-3 pr-12 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors text-base"
+                className="w-full p-3 pr-12 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors text-base"
                 type={showPassword ? "text" : "password"}
                 id="password"
                 name="password"
@@ -370,7 +371,7 @@ const Form = () => {
             </label>
             <div className="relative">
               <input
-                className="w-full p-3 pr-12 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors text-base"
+                className="w-full p-3 pr-12 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors text-base"
                 type={showConfirmPassword ? "text" : "password"}
                 id="confirm-password"
                 name="confirmPassword"
@@ -430,7 +431,7 @@ const Form = () => {
 
           <button
             type="button"
-            className="w-full inline-flex justify-center items-center py-3.5 px-4 rounded-xl shadow-sm bg-white text-base font-semibold cursor-pointer text-slate-700 hover:bg-slate-50 border-2 border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full inline-flex justify-center items-center py-3.5 px-4 rounded-xl shadow-sm bg-white text-base font-medium cursor-pointer text-slate-700 hover:bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleGoogleSignIn}
             disabled={loading}
           >

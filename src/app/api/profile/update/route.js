@@ -87,6 +87,17 @@ export async function POST(request) {
 
     await connectMongoDB();
 
+    const currentUser = await User.findOne({ _id: userId });
+    if (!currentUser) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+    if (!currentUser.isEmailVerified) {
+      return NextResponse.json(
+        { error: "Please verify your email to update profile" },
+        { status: 403 }
+      );
+    }
+
     const updateData = {};
     if (fullName) updateData.fullName = fullName;
     if (title) updateData.title = title;
