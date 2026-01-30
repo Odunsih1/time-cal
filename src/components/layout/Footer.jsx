@@ -1,5 +1,6 @@
 import { Calendar } from "lucide-react";
 import React from "react";
+import Link from "next/link";
 
 const Footer = () => {
   return (
@@ -21,6 +22,12 @@ const Footer = () => {
             </li>
             <li className="transition hover:text-blue-500 cursor-pointer">
               Support
+            </li>
+            <li className="transition hover:text-blue-500 cursor-pointer">
+              <Link href="/privacy">Privacy</Link>
+            </li>
+            <li className="transition hover:text-blue-500 cursor-pointer">
+              <Link href="/terms">Terms</Link>
             </li>
           </ul>
         </div>

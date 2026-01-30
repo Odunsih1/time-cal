@@ -22,8 +22,12 @@ const Header = () => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       setIsAuthenticated(!!user);
       if (!user) {
-        if (window.location.pathname !== "/") {
-          router.push("/");
+        const publicPaths = ["/", "/privacy", "/terms"];
+        if (!publicPaths.includes(window.location.pathname)) {
+          // Allow dynamic public paths if needed, e.g. verify-email
+          if (!window.location.pathname.startsWith("/verify-email")) {
+             router.push("/");
+          }
         }
       }
     });

@@ -4,6 +4,7 @@ import React from "react";
 import toast, { Toaster } from "react-hot-toast";
 import Form from "@/components/ui/Form";
 import { Calendar, CheckCircle } from "lucide-react";
+import Link from "next/link";
 
 const Auth = () => {
   const handleContextMenu = (e) => {
@@ -71,10 +72,10 @@ const Auth = () => {
           <p>© {new Date().getFullYear()} Time-Cal Inc.</p>
           <div className="flex gap-4">
             <span className="hover:text-white cursor-pointer transition-colors">
-              Privacy
+              <Link href="/privacy">Privacy</Link>
             </span>
             <span className="hover:text-white cursor-pointer transition-colors">
-              Terms
+              <Link href="/terms">Terms</Link>
             </span>
           </div>
         </div>
