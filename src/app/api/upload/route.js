@@ -10,6 +10,23 @@ export async function POST(request) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
+    // Validate file type
+    const validTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!validTypes.includes(file.type)) {
+      return NextResponse.json(
+        { error: "Invalid file type. Only JPEG, PNG, WEBP, and GIF are allowed." },
+        { status: 400 }
+      );
+    }
+
+    // Validate file size (e.g., max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      return NextResponse.json(
+        { error: "File size too large. Max 2MB allowed." },
+        { status: 400 }
+      );
+    }
+
     // Convert file to buffer
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);

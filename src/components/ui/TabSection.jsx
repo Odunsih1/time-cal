@@ -161,7 +161,19 @@ const TabSection = () => {
 
   const handleProfilePicChange = (e) => {
     const file = e.target.files[0];
-    if (file) setProfilePic(file);
+    if (file) {
+      // Validate file size (e.g., max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error("File size must be less than 2MB");
+        return;
+      }
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        toast.error("File must be an image");
+        return;
+      }
+      setProfilePic(file);
+    }
   };
 
   const uploadProfilePic = async () => {
