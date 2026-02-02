@@ -517,7 +517,7 @@ const TabSection = () => {
                                 placeholder="username"
                                 type="text"
                                 name="username"
-                                value={generalFormik.values.username}
+                                value={generalFormik.values.username.toLowerCase()}
                                 onChange={generalFormik.handleChange}
                                 onBlur={generalFormik.handleBlur}
                               />

@@ -3,6 +3,7 @@ import { adminAuth } from "@/lib/firebaseAdmin";
 import { connectMongoDB } from "@/lib/mongoose";
 import User from "@/models/User";
 import { z } from "zod";
+import xss from "xss";
 
 const profileSchema = z.object({
   fullName: z.string().min(1, "Full Name is required").optional(),
@@ -167,15 +168,25 @@ export async function POST(request) {
     }
 
     const updateData = {};
-    if (fullName) updateData.fullName = fullName;
-    if (title) updateData.title = title;
-    if (location) updateData.location = location;
-    if (timezone) updateData.timezone = timezone;
+    if (fullName) updateData.fullName = xss(fullName);
+    if (title) updateData.title = xss(title);
+    if (location) updateData.location = xss(location);
+    if (timezone) updateData.timezone = xss(timezone);
     if (hourlyRate !== undefined) updateData.hourlyRate = hourlyRate;
-    if (about) updateData.about = about;
+    if (about) updateData.about = xss(about);
     if (profilePicUrl) updateData.profilePicUrl = profilePicUrl;
     if (notifications) {
-      updateData.notifications = notifications;
+      updateData.notifications = { ...notifications };
+      if (notifications.bookingConfirmationMessage) {
+        updateData.notifications.bookingConfirmationMessage = xss(
+          notifications.bookingConfirmationMessage
+        );
+      }
+      if (notifications.reminderMessage) {
+        updateData.notifications.reminderMessage = xss(
+          notifications.reminderMessage
+        );
+      }
     }
 
     if (username) {
@@ -187,8 +198,8 @@ export async function POST(request) {
           { status: 400 }
         );
       }
-      updateData.username = username;
-      updateData.bookingLink = `https://time-cal.vercel.app/book/${username}`;
+      updateData.username = xss(username);
+      updateData.bookingLink = `https://time-cal.vercel.app/book/${updateData.username}`;
     }
     if (availability) {
       updateData.availability = availability;
