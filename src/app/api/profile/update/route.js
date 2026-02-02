@@ -2,6 +2,58 @@ import { NextResponse } from "next/server";
 import { adminAuth } from "@/lib/firebaseAdmin";
 import { connectMongoDB } from "@/lib/mongoose";
 import User from "@/models/User";
+import { z } from "zod";
+
+const profileSchema = z.object({
+  fullName: z.string().min(1, "Full Name is required").optional(),
+  title: z.string().optional(),
+  location: z.string().optional(),
+  timezone: z.string().optional(),
+  hourlyRate: z.number().min(0).optional(),
+  about: z.string().optional(),
+  profilePicUrl: z.string().url().optional().or(z.literal("")),
+  username: z
+    .string()
+    .min(3, "Username must be at least 3 characters")
+    .optional(),
+  notifications: z
+    .object({
+      newBooking: z.boolean().optional(),
+      cancelledBooking: z.boolean().optional(),
+      reminder: z.boolean().optional(),
+      bookingConfirmationMessage: z.string().optional(),
+      reminderMessage: z.string().optional(),
+    })
+    .optional(),
+  availability: z
+    .array(
+      z.object({
+        day: z.enum([
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+          "Sunday",
+        ]),
+        startTime: z.string().regex(/^\d{2}:\d{2}$/),
+        endTime: z.string().regex(/^\d{2}:\d{2}$/),
+        isAvailable: z.boolean().optional(),
+      })
+    )
+    .optional(),
+  customAvailability: z
+    .array(
+      z.object({
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        startTime: z.string().regex(/^\d{2}:\d{2}$/),
+        endTime: z.string().regex(/^\d{2}:\d{2}$/),
+        isAvailable: z.boolean().optional(),
+      })
+    )
+    .optional(),
+});
 
 export async function GET(request) {
   try {
@@ -59,6 +111,21 @@ export async function POST(request) {
     const idToken = authHeader.split("Bearer ")[1];
     const decodedToken = await adminAuth.verifyIdToken(idToken);
     const userId = decodedToken.uid;
+
+    const body = await request.json();
+
+    // Validate request body using Zod
+    const validationResult = profileSchema.safeParse(body);
+    if (!validationResult.success) {
+      return NextResponse.json(
+        {
+          error: "Validation Error",
+          details: validationResult.error.flatten().fieldErrors,
+        },
+        { status: 400 }
+      );
+    }
+
     const {
       fullName,
       title,
@@ -71,7 +138,8 @@ export async function POST(request) {
       customAvailability,
       notifications,
       username,
-    } = await request.json();
+    } = validationResult.data;
+
     // console.log("Updating profile for user:", userId, {
     //   fullName,
     //   title,
@@ -123,69 +191,9 @@ export async function POST(request) {
       updateData.bookingLink = `https://time-cal.vercel.app/book/${username}`;
     }
     if (availability) {
-      if (!Array.isArray(availability)) {
-        console.error("Invalid availability: not an array");
-        return NextResponse.json(
-          { error: "Availability must be an array" },
-          { status: 400 }
-        );
-      }
-      for (const slot of availability) {
-        if (
-          !slot.day ||
-          ![
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday",
-            "Saturday",
-            "Sunday",
-          ].includes(slot.day) ||
-          !slot.startTime ||
-          !slot.endTime ||
-          !/^\d{2}:\d{2}$/.test(slot.startTime) ||
-          !/^\d{2}:\d{2}$/.test(slot.endTime)
-        ) {
-          console.error("Invalid availability slot:", slot);
-          return NextResponse.json(
-            {
-              error:
-                "Each availability slot must have a valid day, startTime, and endTime",
-            },
-            { status: 400 }
-          );
-        }
-      }
       updateData.availability = availability;
     }
     if (customAvailability) {
-      if (!Array.isArray(customAvailability)) {
-        console.error("Invalid customAvailability: not an array");
-        return NextResponse.json(
-          { error: "CustomAvailability must be an array" },
-          { status: 400 }
-        );
-      }
-      for (const slot of customAvailability) {
-        if (
-          !slot.date ||
-          !/^\d{4}-\d{2}-\d{2}$/.test(slot.date) ||
-          !slot.startTime ||
-          !slot.endTime ||
-          !/^\d{2}:\d{2}$/.test(slot.startTime) ||
-          !/^\d{2}:\d{2}$/.test(slot.endTime)
-        ) {
-          console.error("Invalid customAvailability slot:", slot);
-          return NextResponse.json(
-            {
-              error:
-                "Each customAvailability slot must have a valid date (yyyy-mm-dd), startTime, and endTime",
-            },
-            { status: 400 }
-          );
-        }
-      }
       updateData.customAvailability = customAvailability;
     }
 

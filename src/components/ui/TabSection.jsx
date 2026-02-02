@@ -4,6 +4,8 @@ import { auth } from "@/lib/firebaseConfig";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import toast, { Toaster } from "react-hot-toast";
+import { useFormik } from "formik";
+import { z } from "zod";
 import {
   User,
   Clock,
@@ -23,30 +25,90 @@ import {
 import TimeSelector from "@/components/ui/TimeSelector";
 import TimezoneSelector from "@/components/ui/TimezoneSelector";
 
+const generalSchema = z.object({
+  fullName: z.string().min(1, "Full Name is required"),
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  title: z.string().optional(),
+  location: z.string().optional(),
+  hourlyRate: z.number().min(0, "Hourly rate cannot be negative"),
+  about: z.string().optional(),
+  timezone: z.string().optional(),
+});
+
+const availabilitySchema = z.array(
+  z.object({
+    day: z.string().refine((val) => val !== "Not set", {
+      message: "Please select a day for all slots",
+    }),
+    startTime: z.string().min(1, "Start time is required"),
+    endTime: z.string().min(1, "End time is required"),
+  })
+);
+
+const notificationSchema = z.object({
+  bookingConfirmationMessage: z.string().optional(),
+  reminderMessage: z.string().optional(),
+});
+
 const TabSection = () => {
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState("General");
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    username: "",
-    title: "",
-    location: "",
-    timezone: "UTC",
-    hourlyRate: 0,
-    about: "",
-    profilePicUrl: "",
-    availability: [],
-    notifications: {
-      newBooking: true,
-      cancelledBooking: true,
-      reminder: true,
-      bookingConfirmationMessage: "Thank you for your booking!",
-      reminderMessage: "Reminder: Your booking is tomorrow!",
+  const [profilePic, setProfilePic] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  // Formik for General Tab
+  const generalFormik = useFormik({
+    initialValues: {
+      fullName: "",
+      username: "",
+      title: "",
+      location: "",
+      timezone: "UTC",
+      hourlyRate: 0,
+      about: "",
+      profilePicUrl: "",
+    },
+    validate: (values) => {
+      try {
+        generalSchema.parse(values);
+        return {};
+      } catch (error) {
+        return error instanceof z.ZodError ? error.flatten().fieldErrors : {};
+      }
+    },
+    onSubmit: async (values) => {
+      if (loading) return;
+      setLoading(true);
+      try {
+        const profilePicUrl = await uploadProfilePic();
+        const idToken = await auth.currentUser.getIdToken();
+        const payload = {
+          ...values,
+          profilePicUrl: profilePicUrl || values.profilePicUrl,
+        };
+        const response = await axios.post("/api/profile/update", payload, {
+          headers: { Authorization: `Bearer ${idToken}` },
+        });
+        setUser(response.data.user);
+        toast.success("Profile updated successfully!");
+      } catch (error) {
+        console.error("Update profile error:", error.response?.data || error);
+        toast.error(error.response?.data?.error || "Failed to update profile");
+      } finally {
+        setLoading(false);
+      }
     },
   });
-  const [loading, setLoading] = useState(false);
-  const [profilePic, setProfilePic] = useState(null);
+
+  // State for Availability and Notifications (simpler management without full Formik for now or separate formiks)
+  const [availabilityData, setAvailabilityData] = useState([]);
+  const [notificationsData, setNotificationsData] = useState({
+    newBooking: true,
+    cancelledBooking: true,
+    reminder: true,
+    bookingConfirmationMessage: "Thank you for your booking!",
+    reminderMessage: "Reminder: Your booking is tomorrow!",
+  });
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -58,9 +120,10 @@ const TabSection = () => {
         });
         const userData = response.data.user;
         setUser(userData);
-        setFormData({
+
+        // Update General Formik
+        generalFormik.setValues({
           fullName: userData.fullName || "",
-          email: userData.email || "",
           username: userData.username || "",
           title: userData.title || "",
           location: userData.location || "",
@@ -68,15 +131,19 @@ const TabSection = () => {
           hourlyRate: userData.hourlyRate || 0,
           about: userData.about || "",
           profilePicUrl: userData.profilePicUrl || "",
-          availability: userData.availability || [],
-          notifications: userData.notifications || {
+        });
+
+        // Update other states
+        setAvailabilityData(userData.availability || []);
+        setNotificationsData(
+          userData.notifications || {
             newBooking: true,
             cancelledBooking: true,
             reminder: true,
             bookingConfirmationMessage: "Thank you for your booking!",
             reminderMessage: "Reminder: Your booking is tomorrow!",
-          },
-        });
+          }
+        );
       } catch (error) {
         console.error("Fetch profile error:", error);
         toast.error("Failed to load profile");
@@ -92,34 +159,13 @@ const TabSection = () => {
     }
   }, []);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleNotificationChange = (e) => {
-    const { name, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      notifications: { ...prev.notifications, [name]: checked },
-    }));
-  };
-
-  const handleMessageChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      notifications: { ...prev.notifications, [name]: value },
-    }));
-  };
-
   const handleProfilePicChange = (e) => {
     const file = e.target.files[0];
     if (file) setProfilePic(file);
   };
 
   const uploadProfilePic = async () => {
-    if (!profilePic) return formData.profilePicUrl;
+    if (!profilePic) return generalFormik.values.profilePicUrl;
     const uploadData = new FormData();
     uploadData.append("file", profilePic);
     try {
@@ -134,52 +180,18 @@ const TabSection = () => {
     }
   };
 
-  const handleGeneralSubmit = async (e) => {
-    e.preventDefault();
-    if (loading) return;
-    setLoading(true);
-    try {
-      const profilePicUrl = await uploadProfilePic();
-      const idToken = await auth.currentUser.getIdToken();
-      const payload = {
-        fullName: formData.fullName,
-        username: formData.username,
-        title: formData.title,
-        location: formData.location,
-        timezone: formData.timezone,
-        hourlyRate: parseFloat(formData.hourlyRate),
-        about: formData.about,
-        profilePicUrl,
-      };
-      const response = await axios.post("/api/profile/update", payload, {
-        headers: { Authorization: `Bearer ${idToken}` },
-      });
-      setUser(response.data.user);
-      toast.success("Profile updated successfully!");
-    } catch (error) {
-      console.error("Update profile error:", error.response?.data || error);
-      toast.error(error.response?.data?.error || "Failed to update profile");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleAvailabilitySubmit = async (e) => {
     e.preventDefault();
     if (loading) return;
     setLoading(true);
     try {
-      for (const slot of formData.availability) {
-        if (!slot.day || !slot.startTime || !slot.endTime) {
-          throw new Error(
-            "Each availability slot must have day, startTime, and endTime"
-          );
-        }
-      }
+      // Validate with Zod
+      availabilitySchema.parse(availabilityData);
+
       const idToken = await auth.currentUser.getIdToken();
       const payload = {
-        availability: formData.availability,
-        timezone: formData.timezone,
+        availability: availabilityData,
+        timezone: generalFormik.values.timezone,
       };
       const response = await axios.post("/api/profile/update", payload, {
         headers: { Authorization: `Bearer ${idToken}` },
@@ -191,11 +203,29 @@ const TabSection = () => {
       }));
       toast.success("Availability updated successfully!");
     } catch (error) {
-      console.error("Update availability error:", error.message, error.stack);
-      toast.error(error.message || "Failed to update availability");
+      console.error("Update availability error:", error);
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0]?.message || "Invalid availability data");
+      } else {
+        toast.error(
+          error.response?.data?.error ||
+            error.message ||
+            "Failed to update availability"
+        );
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleNotificationChange = (e) => {
+    const { name, checked } = e.target;
+    setNotificationsData((prev) => ({ ...prev, [name]: checked }));
+  };
+
+  const handleMessageChange = (e) => {
+    const { name, value } = e.target;
+    setNotificationsData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleNotificationSubmit = async (e) => {
@@ -207,8 +237,11 @@ const TabSection = () => {
     if (loading) return;
     setLoading(true);
     try {
+      // Validate with Zod
+      notificationSchema.parse(notificationsData);
+
       const idToken = await auth.currentUser.getIdToken();
-      const payload = { notifications: formData.notifications };
+      const payload = { notifications: notificationsData };
       const response = await axios.post("/api/profile/update", payload, {
         headers: { Authorization: `Bearer ${idToken}` },
       });
@@ -219,37 +252,35 @@ const TabSection = () => {
         "Update notifications error:",
         error.response?.data || error
       );
-      toast.error(
-        error.response?.data?.error || "Failed to update notifications"
-      );
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0]?.message || "Invalid notification data");
+      } else {
+        toast.error(
+          error.response?.data?.error || "Failed to update notifications"
+        );
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const addAvailability = () => {
-    setFormData((prev) => ({
+    setAvailabilityData((prev) => [
       ...prev,
-      availability: [
-        ...prev.availability,
-        { day: "Not set", startTime: "00:00", endTime: "00:00" },
-      ],
-    }));
+      { day: "Not set", startTime: "00:00", endTime: "00:00" },
+    ]);
   };
 
   const updateAvailability = (index, field, value) => {
-    setFormData((prev) => {
-      const newAvailability = [...prev.availability];
+    setAvailabilityData((prev) => {
+      const newAvailability = [...prev];
       newAvailability[index] = { ...newAvailability[index], [field]: value };
-      return { ...prev, availability: newAvailability };
+      return newAvailability;
     });
   };
 
   const removeAvailability = (index) => {
-    setFormData((prev) => ({
-      ...prev,
-      availability: prev.availability.filter((_, i) => i !== index),
-    }));
+    setAvailabilityData((prev) => prev.filter((_, i) => i !== index));
   };
 
   const tabVariants = {
@@ -327,11 +358,16 @@ const TabSection = () => {
                       <div className="bg-slate-50 border-2 border-slate-200 rounded-2xl p-6 text-center">
                         <div className="relative inline-block">
                           <img
-                            src={formData.profilePicUrl || "/images/user.png"}
+                            src={
+                              profilePic
+                                ? URL.createObjectURL(profilePic)
+                                : generalFormik.values.profilePicUrl ||
+                                  "/images/user.png"
+                            }
                             width={120}
                             height={120}
                             alt="Profile picture"
-                            className="rounded-2xl ring-4 ring-slate-100 mx-auto"
+                            className="rounded-2xl ring-4 ring-slate-100 mx-auto object-cover h-[120px] w-[120px]"
                           />
                           <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center border-4 border-white">
                             <Upload className="w-5 h-5 text-white" />
@@ -359,7 +395,7 @@ const TabSection = () => {
                     {/* Form Section */}
                     <div className="lg:w-2/3">
                       <form
-                        onSubmit={handleGeneralSubmit}
+                        onSubmit={generalFormik.handleSubmit}
                         className="space-y-6"
                       >
                         <fieldset
@@ -373,14 +409,25 @@ const TabSection = () => {
                                 Full Name
                               </label>
                               <input
-                                className="w-full p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+                                className={`w-full p-3 border-2 rounded-xl focus:outline-none focus:ring-2 transition-colors ${
+                                  generalFormik.touched.fullName &&
+                                  generalFormik.errors.fullName
+                                    ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                                    : "border-slate-200 focus:border-blue-500 focus:ring-blue-200"
+                                }`}
                                 placeholder="Henry Odunsi"
                                 type="text"
                                 name="fullName"
-                                value={formData.fullName}
-                                onChange={handleInputChange}
-                                required
+                                value={generalFormik.values.fullName}
+                                onChange={generalFormik.handleChange}
+                                onBlur={generalFormik.handleBlur}
                               />
+                              {generalFormik.touched.fullName &&
+                                generalFormik.errors.fullName && (
+                                  <p className="text-red-500 text-xs mt-1">
+                                    {generalFormik.errors.fullName}
+                                  </p>
+                                )}
                             </div>
 
                             <div>
@@ -389,13 +436,25 @@ const TabSection = () => {
                                 Title
                               </label>
                               <input
-                                className="w-full p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+                                className={`w-full p-3 border-2 rounded-xl focus:outline-none focus:ring-2 transition-colors ${
+                                  generalFormik.touched.title &&
+                                  generalFormik.errors.title
+                                    ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                                    : "border-slate-200 focus:border-blue-500 focus:ring-blue-200"
+                                }`}
                                 placeholder="Web Developer"
                                 type="text"
                                 name="title"
-                                value={formData.title}
-                                onChange={handleInputChange}
+                                value={generalFormik.values.title}
+                                onChange={generalFormik.handleChange}
+                                onBlur={generalFormik.handleBlur}
                               />
+                              {generalFormik.touched.title &&
+                                generalFormik.errors.title && (
+                                  <p className="text-red-500 text-xs mt-1">
+                                    {generalFormik.errors.title}
+                                  </p>
+                                )}
                             </div>
                           </div>
 
@@ -409,7 +468,7 @@ const TabSection = () => {
                                 className="w-full p-3 border-2 border-slate-200 rounded-xl bg-slate-50 text-slate-500"
                                 type="email"
                                 name="email"
-                                value={formData.email}
+                                value={user?.email || ""}
                                 readOnly
                               />
                             </div>
@@ -420,13 +479,25 @@ const TabSection = () => {
                                 Location
                               </label>
                               <input
-                                className="w-full p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+                                className={`w-full p-3 border-2 rounded-xl focus:outline-none focus:ring-2 transition-colors ${
+                                  generalFormik.touched.location &&
+                                  generalFormik.errors.location
+                                    ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                                    : "border-slate-200 focus:border-blue-500 focus:ring-blue-200"
+                                }`}
                                 placeholder="Lagos, Nigeria"
                                 type="text"
                                 name="location"
-                                value={formData.location}
-                                onChange={handleInputChange}
+                                value={generalFormik.values.location}
+                                onChange={generalFormik.handleChange}
+                                onBlur={generalFormik.handleBlur}
                               />
+                              {generalFormik.touched.location &&
+                                generalFormik.errors.location && (
+                                  <p className="text-red-500 text-xs mt-1">
+                                    {generalFormik.errors.location}
+                                  </p>
+                                )}
                             </div>
                           </div>
 
@@ -437,17 +508,29 @@ const TabSection = () => {
                                 Booking Link ID
                               </label>
                               <input
-                                className="w-full p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+                                className={`w-full p-3 border-2 rounded-xl focus:outline-none focus:ring-2 transition-colors ${
+                                  generalFormik.touched.username &&
+                                  generalFormik.errors.username
+                                    ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                                    : "border-slate-200 focus:border-blue-500 focus:ring-blue-200"
+                                }`}
                                 placeholder="username"
                                 type="text"
                                 name="username"
-                                value={formData.username}
-                                onChange={handleInputChange}
+                                value={generalFormik.values.username}
+                                onChange={generalFormik.handleChange}
+                                onBlur={generalFormik.handleBlur}
                               />
+                              {generalFormik.touched.username &&
+                                generalFormik.errors.username && (
+                                  <p className="text-red-500 text-xs mt-1">
+                                    {generalFormik.errors.username}
+                                  </p>
+                                )}
                               <p className="text-xs text-slate-500 mt-2 ml-1">
                                 time-cal.vercel.app/book/
                                 <span className="font-medium text-slate-700">
-                                  {formData.username || user?._id}
+                                  {generalFormik.values.username || user?._id}
                                 </span>
                               </p>
                             </div>
@@ -458,13 +541,25 @@ const TabSection = () => {
                                 Hourly Rate ($)
                               </label>
                               <input
-                                className="w-full p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+                                className={`w-full p-3 border-2 rounded-xl focus:outline-none focus:ring-2 transition-colors ${
+                                  generalFormik.touched.hourlyRate &&
+                                  generalFormik.errors.hourlyRate
+                                    ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                                    : "border-slate-200 focus:border-blue-500 focus:ring-blue-200"
+                                }`}
                                 placeholder="50"
                                 type="number"
                                 name="hourlyRate"
-                                value={formData.hourlyRate}
-                                onChange={handleInputChange}
+                                value={generalFormik.values.hourlyRate}
+                                onChange={generalFormik.handleChange}
+                                onBlur={generalFormik.handleBlur}
                               />
+                              {generalFormik.touched.hourlyRate &&
+                                generalFormik.errors.hourlyRate && (
+                                  <p className="text-red-500 text-xs mt-1">
+                                    {generalFormik.errors.hourlyRate}
+                                  </p>
+                                )}
                             </div>
                           </div>
 
@@ -474,12 +569,24 @@ const TabSection = () => {
                               About
                             </label>
                             <textarea
-                              className="w-full p-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors min-h-[120px]"
+                              className={`w-full p-3 border-2 rounded-xl focus:outline-none focus:ring-2 transition-colors min-h-[120px] ${
+                                generalFormik.touched.about &&
+                                generalFormik.errors.about
+                                  ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                                  : "border-slate-200 focus:border-blue-500 focus:ring-blue-200"
+                              }`}
                               placeholder="Tell us about yourself..."
                               name="about"
-                              value={formData.about}
-                              onChange={handleInputChange}
+                              value={generalFormik.values.about}
+                              onChange={generalFormik.handleChange}
+                              onBlur={generalFormik.handleBlur}
                             />
+                            {generalFormik.touched.about &&
+                              generalFormik.errors.about && (
+                                <p className="text-red-500 text-xs mt-1">
+                                  {generalFormik.errors.about}
+                                </p>
+                              )}
                           </div>
 
                           <button
@@ -522,15 +629,15 @@ const TabSection = () => {
                         Timezone
                       </label>
                       <TimezoneSelector
-                        value={formData.timezone}
+                        value={generalFormik.values.timezone}
                         onChange={(value) =>
-                          setFormData((prev) => ({ ...prev, timezone: value }))
+                          generalFormik.setFieldValue("timezone", value)
                         }
                       />
                     </div>
 
                     <div className="space-y-4">
-                      {formData.availability.map((slot, index) => (
+                      {availabilityData.map((slot, index) => (
                         <div
                           key={index}
                           className="bg-white border-2 border-slate-200 rounded-xl p-6 hover:shadow-md transition-all"
@@ -664,9 +771,7 @@ const TabSection = () => {
                               <input
                                 type="checkbox"
                                 name={notification.name}
-                                checked={
-                                  formData.notifications[notification.name]
-                                }
+                                checked={notificationsData[notification.name]}
                                 onChange={handleNotificationChange}
                                 className="sr-only peer"
                               />
@@ -691,9 +796,7 @@ const TabSection = () => {
                             className="w-full p-4 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors min-h-[100px]"
                             placeholder="Thank you for your booking!"
                             name="bookingConfirmationMessage"
-                            value={
-                              formData.notifications.bookingConfirmationMessage
-                            }
+                            value={notificationsData.bookingConfirmationMessage}
                             onChange={handleMessageChange}
                           />
                         </div>
@@ -706,7 +809,7 @@ const TabSection = () => {
                             className="w-full p-4 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors min-h-[100px]"
                             placeholder="Reminder: Your booking is tomorrow!"
                             name="reminderMessage"
-                            value={formData.notifications.reminderMessage}
+                            value={notificationsData.reminderMessage}
                             onChange={handleMessageChange}
                           />
                         </div>
