@@ -19,7 +19,10 @@ const Auth = () => {
       <Toaster position="top-right" reverseOrder={false} />
 
       {/* Left Side - Branding/Hero */}
-      <div className="hidden lg:flex lg:w-1/2 bg-blue-600 relative overflow-hidden flex-col justify-between p-12 text-white">
+      <div
+        className="hidden lg:flex lg:w-1/2 bg-blue-600 relative overflow-hidden flex-col justify-between p-12 text-white"
+        style={{ clipPath: "polygon(0 0, 100% 0, 92% 100%, 0% 100%)" }}
+      >
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-10 pointer-events-none">
           <div className="absolute top-0 -left-10 w-96 h-96 bg-white rounded-full mix-blend-overlay filter blur-3xl"></div>
@@ -68,7 +71,7 @@ const Auth = () => {
         </div>
 
         {/* Footer/Copyright */}
-        <div className="relative z-10 text-sm text-blue-200 flex justify-between items-center">
+        <div className="relative z-10 text-sm text-blue-200 flex justify-between items-center pr-12">
           <p>© {new Date().getFullYear()} Time-Cal Inc.</p>
           <div className="flex gap-4">
             <span className="hover:text-white cursor-pointer transition-colors">
