@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { cloudinary } from "@/lib/cloudinary";
+import { fileTypeFromBuffer } from "file-type";
 
 export async function POST(request) {
   try {
@@ -14,7 +15,10 @@ export async function POST(request) {
     const validTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
     if (!validTypes.includes(file.type)) {
       return NextResponse.json(
-        { error: "Invalid file type. Only JPEG, PNG, WEBP, and GIF are allowed." },
+        {
+          error:
+            "Invalid file type. Only JPEG, PNG, WEBP, and GIF are allowed.",
+        },
         { status: 400 }
       );
     }
@@ -30,6 +34,18 @@ export async function POST(request) {
     // Convert file to buffer
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+
+    // Verify file signature (Magic Numbers)
+    const fileTypeResult = await fileTypeFromBuffer(buffer);
+    if (!fileTypeResult || !validTypes.includes(fileTypeResult.mime)) {
+      return NextResponse.json(
+        {
+          error:
+            "Security Alert: File content does not match the allowed image types.",
+        },
+        { status: 400 }
+      );
+    }
 
     // Upload to Cloudinary
     const result = await new Promise((resolve, reject) => {
