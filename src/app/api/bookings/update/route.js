@@ -3,7 +3,7 @@ import { connectMongoDB } from "@/lib/mongoose";
 import Booking from "@/models/Booking";
 import User from "@/models/User";
 import { adminAuth } from "@/lib/firebaseAdmin"; // Assuming you have a firebaseAdmin setup for server-side auth
-import nodemailer from "nodemailer";
+import { resend } from "@/lib/resend";
 import { generateEmailTemplate } from "@/lib/emailTemplate";
 
 export async function POST(request) {
@@ -69,14 +69,6 @@ export async function POST(request) {
       console.error("User not found for notification:", userId);
     } else {
       // Send email notification to client
-      const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS,
-        },
-      });
-
       const statusMessage =
         status === "completed"
           ? "Your booking has been marked as completed."
@@ -93,19 +85,12 @@ export async function POST(request) {
         ],
       });
 
-      const mailOptions = {
-        from: process.env.EMAIL_USER,
+      await resend.emails.send({
+        from: process.env.EMAIL_FROM || "onboarding@resend.dev",
         to: [booking.clientEmail, user.email],
         subject: `Booking Status Update with ${user.fullName}`,
         html: htmlContent,
-      };
-
-      await transporter.sendMail(mailOptions);
-      // console.log(
-      //   "Status update email sent to:",
-      //   booking.clientEmail,
-      //   user.email
-      // );
+      });
     }
 
     return NextResponse.json(

@@ -3,7 +3,7 @@ import { connectMongoDB } from "@/lib/mongoose";
 import Booking from "@/models/Booking";
 import User from "@/models/User"; // Ensure User model is imported
 import { adminAuth } from "@/lib/firebaseAdmin";
-import nodemailer from "nodemailer";
+import { resend } from "@/lib/resend";
 import { generateEmailTemplate } from "@/lib/emailTemplate";
 import mongoose from "mongoose";
 
@@ -171,14 +171,6 @@ export async function POST(request) {
     // console.log("Booking created:", booking._id);
 
     // Send confirmation email
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-
     const bookingConfirmationMessage =
       user.notifications?.bookingConfirmationMessage ||
       "Thank you for your booking!";
@@ -196,14 +188,12 @@ export async function POST(request) {
       ctaText: "View Dashboard",
     });
 
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
+    await resend.emails.send({
+      from: process.env.EMAIL_FROM || "onboarding@resend.dev",
       to: [clientEmail, user.email],
       subject: `Booking Confirmation with ${user.fullName}`,
       html: htmlContent,
-    };
-
-    await transporter.sendMail(mailOptions);
+    });
     // console.log("Booking confirmation email sent to:", clientEmail, user.email);
 
     return NextResponse.json(

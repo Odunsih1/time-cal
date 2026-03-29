@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { adminAuth } from "@/lib/firebaseAdmin";
 import { connectMongoDB } from "@/lib/mongoose";
 import User from "@/models/User";
-import nodemailer from "nodemailer";
+import { resend } from "@/lib/resend";
 import crypto from "crypto";
 import { generateEmailTemplate } from "@/lib/emailTemplate";
 
@@ -41,16 +41,6 @@ export async function POST(req) {
     // Create reset link
     const resetLink = `${process.env.NEXTAUTH_URL}/auth/reset/${resetToken}`;
 
-    // Set up Nodemailer transporter
-    const transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST,
-      port: process.env.EMAIL_PORT,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-
     // Send email
     const htmlContent = generateEmailTemplate({
       title: "Reset Your Password",
@@ -63,8 +53,8 @@ export async function POST(req) {
       ctaText: "Reset Password",
     });
 
-    await transporter.sendMail({
-      from: process.env.EMAIL_FROM,
+    await resend.emails.send({
+      from: process.env.EMAIL_FROM || "onboarding@resend.dev",
       to: email,
       subject: "Time-Cal Password Reset",
       html: htmlContent,
