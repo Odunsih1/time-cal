@@ -54,7 +54,7 @@ export async function POST(req) {
     });
 
     await resend.emails.send({
-      from: process.env.EMAIL_FROM || "onboarding@resend.dev",
+      from: "Time-Cal <noreply@mail.henryodunsi.com>",
       to: email,
       subject: "Time-Cal Password Reset",
       html: htmlContent,
