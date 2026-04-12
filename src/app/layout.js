@@ -77,7 +77,7 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <script
-          src="https://cdn.jsdelivr.net/gh/Odunsih1/ally@v1.0.1/accessibility-launcher.v1.0.1.min.js"
+          src="https://cdn.jsdelivr.net/gh/Odunsih1/ally@v1.1.2/accessibility-launcher.v1.1.2.min.js"
           defer
         />
         {children}
